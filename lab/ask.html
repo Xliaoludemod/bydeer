@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>问摄影 · 拾遗</title>
+<style>
+:root{
+  --bg:#faf8f4; --ink:#2c2c2a; --ink-soft:#6b675f; --line:#d8d5cc; --card:#efede6; --accent:#8a6d4a;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  background:var(--bg);color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  padding:0 0 150px;
+}
+.nav{
+  height:62px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 30px;border-bottom:1px solid var(--line);background:rgba(250,248,244,.92);
+  position:sticky;top:0;z-index:20;backdrop-filter:blur(8px);
+}
+.nav a{font-size:12px;letter-spacing:.14em;color:var(--ink-soft);text-decoration:none}
+.nav a:hover{color:var(--ink)}
+.nav .logo{font-size:12.5px;letter-spacing:.22em;color:var(--ink)}
+
+.head{max-width:860px;margin:0 auto;padding:46px 30px 0}
+.head h1{font-size:25px;font-weight:500;letter-spacing:.12em}
+.head p{margin-top:14px;font-size:12.5px;line-height:2.05;color:var(--ink-soft)}
+.head p b{color:var(--ink);font-weight:500}
+.head p .hi{color:var(--accent)}
+
+.brain{max-width:860px;margin:22px auto 0;padding:0 30px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.brain .tag{font-size:11px;letter-spacing:.14em;color:var(--ink-soft)}
+.brain button{
+  border:1px solid var(--line);background:#fff;border-radius:16px;padding:7px 15px;
+  font-family:inherit;font-size:11.5px;letter-spacing:.08em;color:var(--ink-soft);cursor:pointer;transition:.2s;
+}
+.brain button.on{background:var(--ink);border-color:var(--ink);color:#fff}
+.brain .setup{font-size:11px;letter-spacing:.06em;color:var(--accent);cursor:pointer;border:none;background:none;font-family:inherit;text-decoration:underline}
+
+.knobs{max-width:860px;margin:14px auto 0;padding:0 30px;display:none}
+.knobs.on{display:block}
+.knobs .inner{background:#fff;border:1px solid var(--line);border-radius:12px;padding:18px 20px 20px}
+.knobs label{display:block;font-size:11px;letter-spacing:.1em;color:var(--ink-soft);margin:12px 0 6px}
+.knobs label:first-child{margin-top:0}
+.knobs input{
+  width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:#fff;
+  font-family:inherit;font-size:12.5px;color:var(--ink);outline:none;
+}
+.knobs input:focus{border-color:var(--accent)}
+.knobs .note{margin-top:12px;font-size:11px;line-height:1.9;color:#a8a49b}
+.knobs .note b{color:var(--ink-soft);font-weight:500}
+
+.thread{max-width:860px;margin:34px auto 0;padding:0 30px}
+.msg{margin-bottom:26px;animation:up .45s cubic-bezier(.2,0,.2,1) both}
+@keyframes up{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.msg .who{font-size:11px;letter-spacing:.18em;color:#bcb7ad;margin-bottom:9px}
+.msg.me .body{
+  display:inline-block;background:var(--ink);color:#fff;border-radius:14px 14px 4px 14px;
+  padding:12px 17px;font-size:13.5px;line-height:1.8;max-width:80%;
+}
+.msg.me{text-align:right}
+.msg.ai .who{color:var(--accent)}
+.msg .body{font-size:13.5px;line-height:2.05;color:#3f3c37}
+.msg.ai .body{background:#fff;border:1px solid var(--line);border-radius:4px 14px 14px 14px;padding:18px 21px}
+.msg .body p + p{margin-top:11px}
+.msg .body b{color:var(--ink);font-weight:600}
+.msg .body em{font-style:normal;color:var(--accent)}
+.msg .from{margin-top:11px;font-size:10.5px;letter-spacing:.14em;color:#bcb7ad}
+.msg .from.rel{color:var(--accent)}
+
+.chips{max-width:860px;margin:0 auto 22px;padding:0 30px;display:flex;flex-wrap:wrap;gap:8px}
+.chips button{
+  border:1px solid var(--line);background:#fff;border-radius:16px;padding:7px 15px;
+  font-family:inherit;font-size:11.5px;letter-spacing:.06em;color:var(--ink-soft);cursor:pointer;
+}
+.chips button:hover{background:var(--card)}
+
+.ask{
+  position:fixed;left:0;right:0;bottom:0;padding:16px 30px 20px;
+  background:linear-gradient(to top, var(--bg) 62%, rgba(250,248,244,0));
+}
+.ask .box{
+  max-width:860px;margin:0 auto;display:flex;gap:10px;align-items:center;
+  background:#fff;border:1px solid var(--line);border-radius:14px;padding:6px 8px 6px 18px;
+  transition:border-color .25s, box-shadow .25s;
+}
+.ask .box:focus-within{border-color:var(--accent);box-shadow:0 8px 28px rgba(138,109,74,.12)}
+.ask input{
+  flex:1;border:none;outline:none;background:transparent;font-family:inherit;
+  font-size:14px;color:var(--ink);padding:14px 0;
+}
+.ask input::placeholder{color:#b8b3a9}
+.ask button{
+  flex:none;border:none;border-radius:10px;background:var(--accent);color:#fff;
+  font-family:inherit;font-size:12.5px;letter-spacing:.14em;padding:12px 24px;cursor:pointer;
+}
+.ask button:hover{opacity:.88}
+.ask button:disabled{opacity:.45;cursor:default}
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <a href="#">← 返回首页</a>
+  <div class="logo">By deer ｜ see 小鹿</div>
+  <a href="find.html">找照片 →</a>
+</div>
+
+<div class="head">
+  <h1>问摄影</h1>
+  <p>
+    曝光、光圈、快门、构图、用光、胶片、后期——问就行。<br>
+    <b>默认那套「讲解」是离线的</b>：我一题一题写好放在里面，所以<b>秒回、不花钱、没有网也能用</b>，
+    答案里全是有用的东西，不是"多练习就好了"这种废话。<br>
+    <span class="hi">你也可以接上自己的大模型</span>（DeepSeek / 智谱 / Kimi / OpenAI，填个 Key 就行）——
+    那时候它就是一个真正的摄影老师，任何问题都能答。Key 只存在你自己的浏览器里。
+  </p>
+</div>
+
+<div class="brain">
+  <span class="tag">用哪套：</span>
+  <button id="bLocal" class="on">离线讲解</button>
+  <button id="bLLM">接上大模型</button>
+  <button class="setup" id="setupBtn">填 Key →</button>
+</div>
+
+<div class="knobs" id="knobs">
+  <div class="inner">
+    <label>接口地址（OpenAI 兼容的都能用）</label>
+    <input id="kBase" value="https://api.deepseek.com/v1" placeholder="https://api.deepseek.com/v1">
+    <label>模型名</label>
+    <input id="kModel" value="deepseek-chat" placeholder="deepseek-chat">
+    <label>API Key（只存在你这台设备的浏览器里，不会发给任何人）</label>
+    <input id="kKey" type="password" placeholder="sk-...">
+    <div class="note">
+      <b>常用三家：</b>DeepSeek → <em>api.deepseek.com/v1</em> · deepseek-chat　｜　
+      智谱 → <em>open.bigmodel.cn/api/paas/v4</em> · glm-4-flash　｜　
+      Kimi → <em>api.moonshot.cn/v1</em> · moonshot-v1-8k<br>
+      <b>注意：</b>浏览器直连接口需要对方允许跨域；如果报错，说明这家不允许网页直连。
+    </div>
+  </div>
+</div>
+
+<div class="thread" id="thread"></div>
+
+<div class="chips" id="chips"></div>
+
+<div class="ask">
+  <div class="box">
+    <input id="q" placeholder="问点摄影的事…" autocomplete="off">
+    <button id="send">问</button>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* =========================================================
+   一、离线讲解：一题一题写好的知识库
+   每条：k 关键词（命中用）· a 答案（结论 → 为什么 → 怎么做）
+   ========================================================= */
+var KB = [
+  { k:["安全快门","手抖","端稳","多少快门","糊了","防抖"],
+    a:"<b>结论：</b>手持时，快门速度不要慢于「焦距的倒数」。50mm 就至少 1/50，85mm 至少 1/85。<p><b>为什么：</b>这个经验值来自一个年代久远的判断——放大到 10 寸照片时，人眼刚好看不出手抖造成的模糊。手机、APS-C、全画幅的等效焦距要换算后再套。</p><p><b>怎么做：</b>① 打开机身防抖或镜头防抖，一般能再省 3～5 档；② 真的不够亮，就提高 ISO——一张有噪点的清楚照片，胜过一次干净的糊片；③ 呼吸控制：按快门的前半秒屏住气，不要憋很久，憋久了反而抖。" },
+
+  { k:["光圈","f值","虚化","景深","背景糊","大光圈"],
+    a:"<b>结论：</b>光圈数字越小，进光越多、背景越糊、景深越浅。f/1.8 比 f/8 亮 4 档多。</p><p><b>为什么：</b>f 值是「焦距 ÷ 进光孔径」，所以是个倒数关系——数字小＝孔大。景深浅的原因也在这：孔径越大，只有正好落在焦点平面上的东西才清楚。</p><p><b>怎么做：</b>想把人从背景里拔出来，用 f/1.8～f/2.8，同时<b>靠近一点</b>、让<b>背景离得远一点</b>——这两件事对虚化的影响比光圈还大。反过来，想整张都清楚（风光），用 f/8～f/11，再小反而因为衍射变软。" },
+
+  { k:["快门","快门速度","动态","凝固","拖影","慢门"],
+    a:"<b>结论：</b>快门决定「动的东西怎么被记录」——够快就冻住，够慢就拉成线。</p><p><b>为什么：</b>快门是曝光时间的长度。1/1000 秒里人几乎没移动，所以是清晰的；1/4 秒里水流动了几十厘米，就变成雾状的丝。</p><p><b>怎么做：</b>拍跑动的人 1/500 以上；拍车流拉丝 1/15～1/4；拍流水成雾 1～30 秒（必须上三脚架）。<b>一个常被忽略的点：</b>慢门时快门一旦慢于 1/60，走动的人会整体糊掉，只有不动的部分清晰——这不一定难看，但要你自己决定。" },
+
+  { k:["ISO","感光度","噪点","颗粒","高感"],
+    a:"<b>结论：</b>ISO 不是「画质开关」，是「你在多暗的地方还愿意拍」。</p><p><b>为什么：</b>ISO 提高相当于把信号放大，放大的同时也把噪点放大。但现代机身的高感比十年前好太多，ISO 3200、6400 在很多场合完全可用。</p><p><b>怎么做：</b>光线够就用基础 ISO（通常 100 或 200）；到了安全快门还欠曝，就果断提 ISO，别用「欠曝+后期提亮」去换——欠曝提亮带来的噪点，通常比直接在相机里提 ISO 更难看。另外：<b>宁可有噪点，不要糊。</b>" },
+
+  { k:["曝光","欠曝","过曝","曝光补偿","测光","怎么拍亮"],
+    a:"<b>结论：</b>相机的测光是「把画面平均成灰」——所以对着雪会拍灰，对着黑会拍亮。这时候要人工干预。</p><p><b>为什么：</b>测光表的目标是让平均亮度落在中灰。画面里白色占多数，它就会把白色压低到灰；黑色占多数，它就往上抬。</p><p><b>怎么做：</b>雪景、白墙、逆光人像 → <em>+0.7～+1.5</em>；夜景、黑背景、舞台上的人 → <em>-0.7～-1.5</em>。拍完立刻看直方图，比看屏幕亮不亮可靠得多。" },
+
+  { k:["直方图","看直方图","怎么判断曝光"],
+    a:"<b>结论：</b>直方图是判断曝光的唯一可靠依据，屏幕亮度受环境影响太大。</p><p><b>为什么：</b>它把画面里每个亮度级别的像素数量画成一根柱子。左边是暗部、右边是亮部。</p><p><b>怎么做：</b>① 柱子<b>顶到右边墙</b>＝亮部溢出，白得没细节了；② 顶到<b>左边墙</b>＝死黑；③ 理想状态是柱形集中在中间偏右，两端有但不堆死。<b>注意：</b>如果画面里有光源、太阳、反光，右边堆一点是正常的，别一概而论。" },
+
+  { k:["向右曝光","ETTR","宽容度"],
+    a:"<b>结论：</b>在「亮部不溢出」的前提下尽量往右曝，噪点最少、层次最多。</p><p><b>为什么：</b>数字传感器的亮部记录的信息量远多于暗部——同样是一档曝光，亮部那档里能装下的明暗层级是暗部的几倍。所以能往右就往右，后期再压回来。</p><p><b>怎么做：</b>先拍一张，看直方图右侧，如果离右边墙还有距离，就把曝光补偿往上加；加到刚好有极少数像素贴墙为止。<b>代价：</b>RAW 才有意义，JPEG 别玩这个。" },
+
+  { k:["白平衡","色温","偏色","发黄","发蓝","K值"],
+    a:"<b>结论：</b>白平衡决定「白色被当成什么色」——它保的不是颜色，是<b>你对光的感觉</b>。</p><p><b>为什么：</b>人眼会自动校正（白炽灯下看白纸还是白的），相机不会。所以给它一个「这里的白应该是多少 K」的答案，它才能把其他颜色算对。</p><p><b>怎么做：</b>日落想要暖，就<b>手动调高 K 值</b>（比如 6500～8000）让画面更黄；想把阴天拍得干净，用 5500 左右；想统一一组照片的色调，就在同一个光线下拍一张灰卡、后期套用。<b>别一直用自动白平衡</b>——同一组照片里它会飘。" },
+
+  { k:["构图","三分","怎么摆","引导线","对称"],
+    a:"<b>结论：</b>构图不是「把东西放在三分线上」，是<b>决定让眼睛先看哪儿、然后看哪儿</b>。</p><p><b>为什么：</b>三分法之所以有效，是因为放在正中的东西太稳、太平，而偏一点的位置会产生「要往哪边倒」的张力。引导线、框架、前后景，本质都是同一件事：给眼睛修一条路。</p><p><b>怎么做：</b>拍之前先问自己一句：<em>这张照片的主角是谁？</em>然后确认三件事——① 主角在画面里有没有被别的东西抢；② 边上有没有多余的东西；③ 上下留的空白对不对。能做到这三条，比背十条构图法则有用。" },
+
+  { k:["留白","空","简洁","拍照太空","背景乱"],
+    a:"<b>结论：</b>留白不是「空着」，是把「不参与表达的东西」拿掉。</p><p><b>为什么：</b>照片的信息量是有限的。每一处杂乱的背景都在分掉观看者的注意力，主次一乱，照片就变成记录。</p><p><b>怎么做：</b>① 靠近一步，多数背景问题靠靠近就能解决；② 蹲下或举高，把天空或地面当成干净的底；③ 用大光圈把背景化开；④ <b>先找背景、再放人</b>——这个顺序一换，成片率翻倍。" },
+
+  { k:["逆光","用光","侧光","顺光","光怎么用"],
+    a:"<b>结论：</b>光的方向决定照片的性格：顺光稳、侧光立体、逆光有气氛。</p><p><b>为什么：</b>顺光把所有阴影藏在背后，所以平、干净、但也平；侧光让阴影露出来，体积感就出来了；逆光把主体变成轮廓，代价是里面没了细节。</p><p><b>怎么做：</b>人像最好用的通常是<b>侧前 45°</b>——有立体感又不丢细节。逆光想保人脸，就正面补光（反光板、闪光灯、甚至白墙），或者干脆放弃细节，做成剪影。" },
+
+  { k:["黄金时刻","蓝调","什么时候拍","日落","日出"],
+    a:"<b>结论：</b>一天里最好的光线是日出后和日落前一小时，以及日落后的 20～30 分钟。</p><p><b>为什么：</b>太阳低的时候，光穿过更厚的大气，蓝光被散射掉、留下暖色，而且光变成侧向的——同时拿到「暖」和「立体」两件事。中午的太阳在头顶，光又硬又平。</p><p><b>怎么做：</b>提前用 App 查好日落时间，<b>提前 40 分钟到场</b>。日落之后别急着走——那二十分钟的蓝调（天蓝得发紫、灯刚亮）往往是整晚最好看的时候。" },
+
+  { k:["对焦","对不上","跑焦","合焦","对焦点","峰值"],
+    a:"<b>结论：</b>大多数「照片不锐」不是器材问题，是对焦点放错了地方。</p><p><b>为什么：</b>自动对焦靠对比度或相位判断，它会积极地找画面里反差最大的地方。你让它自己选，它常常选到背景的树、反光的栏杆上。</p><p><b>怎么做：</b>① 换成<b>单点对焦</b>，自己把点挪到眼睛里；② 拍会动的东西用连续对焦 + 追焦；③ 弱光、隔着玻璃、纯色墙面容易对不上，切手动对焦看峰值。<b>拍人像记住一条：对最近的那么眼睛，永远对眼睛。</b>" },
+
+  { k:["锐化","不锐","糊","清晰度","后期锐化"],
+    a:"<b>结论：</b>锐化不能救回模糊，它只能让「本来就清楚」的边看起来更清楚。</p><p><b>为什么：</b>锐化的原理是加大边缘两侧的明暗差。如果边缘本身是糊的（信息已经丢了），放大对比只是让糊变得更刺眼，还会出白边。</p><p><b>怎么做：</b>找出真正的原因——没对好焦 / 快门慢了 / 光圈衍射 / 高 ISO 降噪过度。真要用锐化，用「遮罩锐化」只作用于边缘，<b>别整张拉</b>。另外少用「清晰度」滑块往上推，那个东西推多了非常假。" },
+
+  { k:["后期","修图","该不该修","造假","调色"],
+    a:"<b>结论：</b>后期不是「改照片」，是把相机没拍出来的东西拿回来。</p><p><b>为什么：</b>相机记录的是传感器的线性数据，而人眼是带补偿的。你在现场看到的东西，从来都不是 JPEG 直出的那个样子——所以调回你看到的感觉，不是造假。</p><p><b>怎么做：</b>顺序很重要：<b>先曝光和黑白场 → 再白平衡 → 再对比和曲线 → 最后才颜色</b>。反过来做，你会一直在救前面没做完的事。有一条界线值得自己定：<em>不能让照片说谎</em>——去掉垃圾可以，加进不存在的东西要想清楚。" },
+
+  { k:["色彩管理","sRGB","Adobe RGB","导出","发灰","颜色不一样"],
+    a:"<b>结论：</b>要发到网上，一律导出 <b>sRGB</b>。忘了转，颜色一定发灰发暗。</p><p><b>为什么：</b>大多数浏览器和手机默认按 sRGB 解释颜色。你给它一个 Adobe RGB 的图，它会拿 sRGB 的规则去读——饱和度立刻就掉下来了。</p><p><b>怎么做：</b>导出时选「转换到 sRGB」而不是「嵌入配置文件」。这是网上最常见的「为什么我电脑上看很好看、发出来就发灰」的原因，没有之一。" },
+
+  { k:["胶片","曝光宽容度","迫冲","负片","反转片"],
+    a:"<b>结论：</b>负片宽容度大（尤其亮部），反转片（正片）极小、几乎不容错。</p><p><b>为什么：</b>负片的成像原理是「越亮的地方银盐被还原得越透」，高光区还有大量余量；反转片是直接形成正像，亮部一到头就是死白。</p><p><b>怎么做：</b>拍负片可以<b>稍微过曝</b>（按 ISO 的 2/3 到 1 倍来），暗部层次会更好，这也是很多人说「Portra 要往下减 ISO 用」的原因。拍反转片必须严格按测光，宁可欠一点。迫冲（推 ISO）会同时加对比和加颗粒，适合夜景和人像。" },
+
+  { k:["器材","买什么","机身重要吗","镜头选择","定焦变焦"],
+    a:"<b>结论：</b>预算优先给镜头和光，最后才给机身。</p><p><b>为什么：</b>机身决定的是「你能不能拍到」（高感、连拍、对焦），镜头决定的是「拍到长什么样」（焦外、色彩、反差）。换代机身通常只是小幅改善，换一支好镜头是肉眼可见的变化。</p><p><b>怎么做：</b>新手最划算的往往是<b>一支 35mm 或 50mm 定焦</b>——它逼你走动，也逼你在按快门前想清楚。变焦解决的是「来不来得及」，定焦解决的是「好不好看」。两者都需要，但先学会用一支走天下，进步最快。" },
+
+  { k:["备份","存哪里","照片丢了","硬盘"],
+    a:"<b>结论：</b>照片只有存在三个地方才算安全，其中至少一个在别处。</p><p><b>为什么：</b>硬盘会坏、会丢、会被误删；网盘会关停、会清空。单点存储出事的概率，比你想的高得多。</p><p><b>怎么做：</b>本机硬盘 + 一块移动硬盘 + 网盘，叫「3-2-1」。网盘这条最容易被忽略但最关键——火灾、失窃只有异地能救。另外：<b>胶片扫描件更要这样做</b>，底片也要防潮避光收好，那是唯一不可再生的东西。" },
+
+  { k:["人像","拍人","不会拍人","表情","眼神光"],
+    a:"<b>结论：</b>拍人像最大的变量不是器材，是「对方在你面前放松不放松」。</p><p><b>为什么：</b>人紧张的时候，肩是提起来的、下巴是收的、眼神是躲的——这些全都会进照片，而且后期救不回来。</p><p><b>怎么做：</b>① 先聊三句话再举相机；② 用 50～85mm，别用广角贴脸（会变形）；③ 让对方的眼睛里有光——找窗户、找白色反光面，眼睛里有那个小亮点，整个人就活了；④ 眼睛聚焦，永远。<b>连拍不解决表情问题，说话才解决。</b>" },
+
+  { k:["风光","风景","前景","滤镜","ND","堆栈"],
+    a:"<b>结论：</b>大部分平淡的风光照，问题在「没有前景」。</p><p><b>为什么：</b>一张照片要在平面上造出深度，靠的是「近的东西大、远的东西小、中间有东西引导」。只有远山，画面就是一张贴纸。</p><p><b>怎么做：</b>取景时先低头找前景——石头、草、水面、栏杆，任何能让观众「站进去」的东西。再加三件事：三脚架（为了小光圈和长曝）、ND 滤镜（白天也要长曝）、渐变灰（对付亮天暗地）。拍流水堆栈、拍星轨，都靠三脚架 + 连拍。" },
+
+  { k:["怎么开始","新手","练习","进步","学摄影"],
+    a:"<b>结论：</b>别学十件事，先只练一件：<b>在按快门之前，说出这张照片想说什么。</b></p><p><b>为什么：</b>技术问题（曝光、对焦）三周就能学会，而且现在相机自己就能做掉大半。真正拉开差距的，是「为什么按」这个判断——它只能靠反复做决定练出来。</p><p><b>怎么做：</b>定一个小练习：一周只拍一个主题、只用一个焦段、每天只交三张。回头看时问三个问题：为什么不满意？当时能怎么改？下次还拍不拍？<b>拍得多不等于进步，回头看才进步。</b>" },
+
+  { k:["手机","相机比手机","值得买相机","手机够不够"],
+    a:"<b>结论：</b>手机的问题是「算法替你做了决定」，相机的问题是「你要自己做决定」。</p><p><b>为什么：</b>手机靠多帧合成、HDR、锐化把每一张都拉到一个「好看的平均值」——它在任何光线都能给你一张不错的照片，但很难给你一张「有性格的」照片。</p><p><b>怎么做：</b>如果你只想记录生活，手机完全够，而且更常在你手上。<b>如果你开始觉得「手机拍出来的不是我看到的样子」——那就是该买相机的时候了。</b>更省钱的第一步：用手机的专业模式，关掉 HDR 和自动美颜，自己调曝光。" }
+];
+
+/* =========================================================
+   二、离线检索：把问题匹配到条目
+   ========================================================= */
+function pick(q) {
+  var raw = q.replace(/[\s，。？！,.?!、；;：:]/g, "");
+  if (!raw) return null;
+  var best = null, bestScore = 0;
+  KB.forEach(function (e) {
+    var s = 0;
+    e.k.forEach(function (kw) {
+      if (raw.indexOf(kw) >= 0) s += kw.length * 2;
+      else if (kw.length >= 2 && raw.indexOf(kw.slice(0, 2)) >= 0) s += 1;
+    });
+    /* 答案里出现也算弱命中 */
+    if (s === 0) {
+      var hit = 0;
+      e.k.forEach(function (kw) { if (e.a.indexOf(kw) >= 0) hit++; });
+      if (hit) s = 0.5;
+    }
+    if (s > bestScore) { bestScore = s; best = e; }
+  });
+  return bestScore >= 2 ? best : null;
+}
+
+/* 允许"不懂"：给一句诚实的话 + 能答的清单，而不是硬编一个答案 */
+function fallback(q) {
+  var titles = KB.slice(0, 8).map(function (e) { return e.k[0]; }).join(" · ");
+  return "<p>这个问题我<b>离线的那套里没有</b>——我不能瞎编一个给你。</p>" +
+    "<p><b>我能答得比较扎实的是这类：</b>" + titles + " ……（一共 " + KB.length + " 条）</p>" +
+    "<p><b>两个办法：</b>① 换个说法，用上面这些词问我；② 点上面的 <em>「接上大模型」</em>，填一个 Key，" +
+    "它就能答任何问题（包括新的、我没写过的）。</p>";
+}
+
+/* =========================================================
+   三、大模型：OpenAI 兼容接口，流式
+   ========================================================= */
+var SYS = [
+  "你是一位有二十年经验的摄影老师，教过很多从零开始的人。",
+  "你的回答必须：",
+  "1. 先给结论，一句话说清；再解释为什么（讲原理，不要只讲现象）；最后给可操作的做法。",
+  "2. 说人话，不要术语堆砌；必须用术语时当场解释。",
+  "3. 举具体的数字和场景（比如「f/1.8、1/125、ISO 400，黄昏的街上」），不要泛泛而谈。",
+  "4. 不要空话（禁止「多练习就好了」「要用心去感受」这类）。",
+  "5. 如果问的东西与摄影无关，礼貌说明你只聊摄影。",
+  "6. 中文回答，控制在 400 字以内，重要的话用 **加粗**。"
+].join("\n");
+
+function cfg() {
+  return {
+    base: (document.getElementById("kBase").value || "").replace(/\/+$/, ""),
+    model: document.getElementById("kModel").value || "deepseek-chat",
+    key: document.getElementById("kKey").value || ""
+  };
+}
+function saveCfg() {
+  try { localStorage.setItem("shiyi_llm", JSON.stringify(cfg())); } catch (e) {}
+}
+function loadCfg() {
+  try {
+    var o = JSON.parse(localStorage.getItem("shiyi_llm") || "null");
+    if (!o) return;
+    if (o.base) document.getElementById("kBase").value = o.base;
+    if (o.model) document.getElementById("kModel").value = o.model;
+    if (o.key) document.getElementById("kKey").value = o.key;
+  } catch (e) {}
+}
+
+function md(s) {
+  return s
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/\*\*(.+?)\*\*/g, "<b>$1</b>");
+}
+
+function askLLM(q, onChunk, onDone, onErr) {
+  var c = cfg();
+  if (!c.key) { onErr("没有填 API Key。点上面的「填 Key →」。"); return; }
+  fetch(c.base + "/chat/completions", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "Authorization": "Bearer " + c.key },
+    body: JSON.stringify({
+      model: c.model,
+      stream: true,
+      temperature: 0.65,
+      messages: [{ role: "system", content: SYS }, { role: "user", content: q }]
+    })
+  }).then(function (r) {
+    if (!r.ok) throw new Error("接口返回 " + r.status + "（检查 Key、模型名，或这家不允许网页直连）");
+    if (!r.body) throw new Error("这个浏览器不支持流式读取");
+    var rd = r.body.getReader(), dec = new TextDecoder(), buf = "", text = "";
+    function pump() {
+      return rd.read().then(function (res) {
+        if (res.done) { onDone(text); return; }
+        buf += dec.decode(res.value, { stream: true });
+        var lines = buf.split("\n");
+        buf = lines.pop();
+        lines.forEach(function (ln) {
+          ln = ln.trim();
+          if (!ln || ln.indexOf("data:") !== 0) return;
+          var payload = ln.slice(5).trim();
+          if (payload === "[DONE]") return;
+          try {
+            var j = JSON.parse(payload);
+            var d = j.choices && j.choices[0] && j.choices[0].delta;
+            if (d && d.content) { text += d.content; onChunk(text); }
+          } catch (e) {}
+        });
+        return pump();
+      });
+    }
+    return pump();
+  }).catch(function (e) { onErr(e.message || String(e)); });
+}
+
+/* =========================================================
+   四、界面
+   ========================================================= */
+var thread = document.getElementById("thread");
+var qEl = document.getElementById("q");
+var sendBtn = document.getElementById("send");
+var mode = "local";
+
+function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+
+function addMe(text) {
+  var d = document.createElement("div");
+  d.className = "msg me";
+  d.innerHTML = '<div class="body">' + esc(text) + '</div>';
+  thread.appendChild(d);
+  scroll();
+  return d;
+}
+function addAI(html, from, rel) {
+  var d = document.createElement("div");
+  d.className = "msg ai";
+  d.innerHTML = '<div class="who">答</div><div class="body">' + html + '</div>' +
+    (from ? '<div class="from' + (rel ? " rel" : "") + '">' + from + '</div>' : "");
+  thread.appendChild(d);
+  scroll();
+  return d;
+}
+function scroll() { window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" }); }
+
+function ask(text) {
+  text = (text || "").trim();
+  if (!text) return;
+  addMe(text);
+  qEl.value = "";
+
+  if (mode === "local") {
+    var e = pick(text);
+    if (e) {
+      addAI(e.a, "来自离线讲解 · 一共 " + KB.length + " 条 · 秒回");
+    } else {
+      addAI(fallback(text), "离线讲解里没有这一条", true);
+    }
+    return;
+  }
+
+  var box = addAI('<span style="color:#bcb7ad">正在想…</span>', "");
+  var body = box.querySelector(".body");
+  sendBtn.disabled = true;
+  var got = false;
+  askLLM(text,
+    function (t) { got = true; body.innerHTML = md(t); scroll(); },
+    function (t) {
+      body.innerHTML = t ? md(t) : '<span style="color:#a8a49b">模型没有返回内容。</span>';
+      box.querySelector(".from") || (box.innerHTML += '<div class="from">来自你自己的模型 · ' + esc(cfg().model) + "</div>");
+      sendBtn.disabled = false;
+    },
+    function (msg) {
+      body.innerHTML = '<p style="color:#a8763a">没能连上模型：' + esc(msg) + '</p>' +
+        '<p>要不要先用 <b>离线讲解</b> 试试？点上面的按钮切回去，一样能问。</p>';
+      sendBtn.disabled = false;
+    }
+  );
+}
+
+/* 初始问候 + 推荐问题 */
+(function () {
+  addAI("<p>问吧。曝光、光圈、快门、构图、用光、胶片、后期、器材——都行。</p>" +
+        "<p>现在是<b>离线讲解</b>模式：答案是我一题一题写好的，所以秒回、不花钱、没网也能用。</p>",
+        "离线讲解 · 一共 " + KB.length + " 条");
+  var chips = [
+    "安全快门到底怎么算？", "为什么我的照片总是灰蒙蒙的？",
+    "光圈大了就一定虚化好吗？", "日落应该什么时候到？",
+    "胶片曝光宽容度，负片和反转片差多少？", "发到网上颜色发灰怎么办？",
+    "拍人像怎么让对方放松？", "新手该先买什么镜头？"
+  ];
+  var host = document.getElementById("chips");
+  chips.forEach(function (c) {
+    var b = document.createElement("button");
+    b.textContent = c;
+    b.addEventListener("click", function () { ask(c); });
+    host.appendChild(b);
+  });
+})();
+
+/* 模式切换 */
+document.getElementById("bLocal").addEventListener("click", function () {
+  mode = "local";
+  this.classList.add("on");
+  document.getElementById("bLLM").classList.remove("on");
+  addAI("<p>切到<b>离线讲解</b>了。</p>", "秒回 · 零成本");
+});
+document.getElementById("bLLM").addEventListener("click", function () {
+  var c = cfg();
+  if (!c.key) {
+    document.getElementById("knobs").classList.add("on");
+    document.getElementById("kKey").focus();
+    addAI("<p>要用你自己的大模型，先填一下右边的三项（接口地址 / 模型名 / API Key）。</p>" +
+          "<p>填完再点一次 <b>「接上大模型」</b>。Key 只存在你这台设备的浏览器里，不会发给任何人——" +
+          "这是纯静态页面的好处，也是它的限制：<em>它必须由你的浏览器直连模型</em>。</p>", "需要一次配置");
+    return;
+  }
+  mode = "llm";
+  this.classList.add("on");
+  document.getElementById("bLocal").classList.remove("on");
+  addAI("<p>接上了：<b>" + esc(c.model) + "</b>。现在它是一位摄影老师，问什么都可以。</p>",
+        "来自你自己的模型");
+});
+document.getElementById("setupBtn").addEventListener("click", function () {
+  document.getElementById("knobs").classList.toggle("on");
+  document.getElementById("kKey").focus();
+});
+["kBase", "kModel", "kKey"].forEach(function (id) {
+  document.getElementById(id).addEventListener("change", saveCfg);
+});
+
+sendBtn.addEventListener("click", function () { ask(qEl.value); });
+qEl.addEventListener("keydown", function (e) { if (e.key === "Enter") ask(qEl.value); });
+
+loadCfg();
+try {
+  var q0 = new URLSearchParams(location.search).get("q");
+  if (q0) setTimeout(function () { ask(q0); }, 400);
+} catch (e) {}
+})();
+</script>
+</body>
+</html>

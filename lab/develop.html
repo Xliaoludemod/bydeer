@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>海边的人 · 拾遗</title>
+<style>
+:root{
+  --bg:#faf8f4; --ink:#2c2c2a; --ink-soft:#6b675f; --line:#d8d5cc; --card:#efede6; --accent:#8a6d4a;
+  --paper:#f6f3ec;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  background:var(--bg);color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  padding:0 0 100px;
+}
+.nav{
+  height:62px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 30px;border-bottom:1px solid var(--line);background:rgba(250,248,244,.9);
+  position:sticky;top:0;z-index:20;backdrop-filter:blur(8px);
+}
+.nav a{font-size:12px;letter-spacing:.14em;color:var(--ink-soft);text-decoration:none}
+.nav a:hover{color:var(--ink)}
+.nav .logo{font-size:12.5px;letter-spacing:.22em;color:var(--ink)}
+.nav .soc{display:flex;gap:18px;font-size:12px;letter-spacing:.1em;color:var(--ink-soft)}
+
+.head{max-width:1180px;margin:0 auto;padding:54px 32px 30px}
+.head h1{font-size:26px;font-weight:500;letter-spacing:.12em}
+.head p{margin-top:14px;font-size:13px;line-height:2;color:var(--ink-soft);max-width:640px}
+.head p b{color:var(--ink);font-weight:500}
+.head p .hi{color:var(--accent)}
+
+.rollbar{
+  max-width:1180px;margin:0 auto 30px;padding:0 32px;
+  display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;
+}
+.rollbar .cnt{font-size:12px;letter-spacing:.14em;color:var(--ink-soft);font-variant-numeric:tabular-nums}
+.rollbar .cnt b{color:var(--accent);font-weight:500}
+.rollbar .reward{
+  font-size:12px;letter-spacing:.1em;color:#fff;background:var(--accent);
+  padding:10px 20px;border-radius:20px;text-decoration:none;
+  opacity:0;transform:translateY(6px);pointer-events:none;transition:.5s ease;
+}
+.rollbar .reward.on{opacity:1;transform:none;pointer-events:auto}
+.rollbar .reward:hover{opacity:.88}
+
+.wall{max-width:1180px;margin:0 auto;padding:0 32px;columns:3;column-gap:22px}
+@media(max-width:980px){.wall{columns:2}}
+@media(max-width:640px){.wall{columns:1}}
+
+.shot{break-inside:avoid;margin:0 0 22px;display:block}
+.shot .frame{
+  position:relative;overflow:hidden;border-radius:4px;background:var(--card);
+  box-shadow:0 1px 2px rgba(60,52,40,.06);
+}
+.shot img{
+  display:block;width:100%;height:auto;
+  transition:filter 2.3s cubic-bezier(.30,0,.16,1), opacity 2.3s cubic-bezier(.30,0,.16,1),
+             transform 2.6s cubic-bezier(.30,0,.16,1);
+}
+.shot .veil{
+  position:absolute;inset:0;background:var(--paper);
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;transition:opacity 2.1s cubic-bezier(.30,0,.16,1);
+}
+.shot .veil span{
+  font-size:12px;letter-spacing:.24em;color:#bcb7ad;
+}
+.shot .veil:before{
+  content:"";position:absolute;inset:16px;border:1px dashed rgba(0,0,0,.10);border-radius:2px;
+}
+
+/* —— 未显影状态 —— */
+.shot.raw{cursor:pointer}
+.shot.raw img{filter:blur(18px) brightness(2.4) contrast(.22) saturate(.04);opacity:.18;transform:scale(1.07)}
+.shot.raw .veil{opacity:1}
+.shot.raw .veil span{color:#a8a39a}
+.shot.raw:hover .veil span{color:var(--accent)}
+.shot.raw .frame:hover{box-shadow:0 4px 18px rgba(60,52,40,.12)}
+
+.shot figcaption{
+  display:flex;justify-content:space-between;gap:12px;
+  margin-top:9px;font-size:11.5px;letter-spacing:.1em;color:#a8a49b;
+}
+.shot.raw figcaption{color:var(--accent)}
+.shot figcaption b{font-weight:500;color:var(--ink-soft)}
+.shot.raw figcaption b{color:var(--accent)}
+
+.foot{max-width:1180px;margin:52px auto 0;padding:0 32px;font-size:11.5px;line-height:2;color:#a8a49b}
+.foot b{color:var(--ink-soft);font-weight:500}
+.foot .hi{color:var(--accent)}
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <a href="#">← 返回</a>
+  <div class="logo">By deer ｜ see 小鹿</div>
+  <div class="soc"><a href="#">微信</a><a href="#">小红书</a><a href="#">抖音</a></div>
+</div>
+
+<div class="head">
+  <h1>海边的人</h1>
+  <p>
+    银盐 · 胶片　｜　12 组　｜　慢速的时间<br>
+    <span class="hi">有几张还没显影出来。</span>点一下，它才会慢慢出现——就像在暗房里那样。
+  </p>
+</div>
+
+<div class="rollbar">
+  <div class="cnt" id="cnt">你已显影 <b>0</b> / 2 张</div>
+  <a class="reward" id="reward" href="card-studio.html">这一卷显影完了 → 去做一张卡片带走</a>
+</div>
+
+<div class="wall" id="wall"></div>
+
+<div class="foot">
+  <b>这是一个想法，不是最终页面。</b>「未显影」的照片由你指定（一个字段就能控制），每卷只放 1–2 张，不会到处都是。<br>
+  <b>进度存在你自己的浏览器里</b>，下次打开还记得你显影过哪几张——不需要登录，也不经过任何服务器。<br>
+  <b>想撤掉：</b>清一下浏览器的本站数据就回到初始状态。
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* index / 图片 / 是否"未显影" / 说明。真实站点里这些来自 js/data.js */
+var SHOTS = [
+  { src: "demo/d1.jpg", title: "黎明前二十分钟", gear: "M6 · 35mm · Portra 400", w: 1400, h: 933 },
+  { src: "demo/d3.jpg", title: "夜航船",         gear: "M6 · 50mm · Tri-X 400",   w: 933,  h: 1400, raw: true },
+  { src: "demo/d2.jpg", title: "雾里的对岸",     gear: "M6 · 35mm · Portra 400", w: 1400, h: 933 },
+  { src: "demo/d6.jpg", title: "退潮线",         gear: "M6 · 35mm · Ektar 100",  w: 1400, h: 933 },
+  { src: "demo/d5.jpg", title: "晒网的下午",     gear: "M6 · 50mm · Portra 160", w: 933,  h: 1400, raw: true },
+  { src: "demo/d4.jpg", title: "没有人的码头",   gear: "M6 · 35mm · Tri-X 400",  w: 1400, h: 933 }
+];
+
+var KEY = "shiyi_developed_v1";
+var done = {};
+try { done = JSON.parse(localStorage.getItem(KEY) || "{}") || {}; } catch (e) { done = {}; }
+/* 调试用：?all=1 直接看"全都显影过"的样子 */
+try {
+  if (new URLSearchParams(location.search).get("all") === "1") {
+    done = {};
+    SHOTS.forEach(function (s, i) { if (s.raw) done[i] = 1; });
+  }
+} catch (e) {}
+function save() { try { localStorage.setItem(KEY, JSON.stringify(done)); } catch (e) {} }
+
+var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+var wall = document.getElementById("wall");
+var totalRaw = SHOTS.filter(function (s) { return s.raw; }).length;
+
+SHOTS.forEach(function (s, i) {
+  var fig = document.createElement("figure");
+  fig.className = "shot" + (s.raw ? " raw" : "");
+  fig.innerHTML =
+    '<div class="frame">' +
+      '<img src="' + s.src + '" alt="' + s.title + '" width="' + s.w + '" height="' + s.h + '" loading="lazy">' +
+      '<div class="veil"><span>' + (s.raw ? "未显影 · 点一下" : "") + '</span></div>' +
+    '</div>' +
+    '<figcaption><span><b>' + s.title + '</b></span><span>' + s.gear + '</span></figcaption>';
+
+  if (s.raw) {
+    fig.setAttribute("tabindex", "0");
+    fig.setAttribute("role", "button");
+    if (done[i]) fig.classList.remove("raw");
+    fig.addEventListener("click", function () { develop(fig, i); });
+    fig.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); develop(fig, i); }
+    });
+  }
+  wall.appendChild(fig);
+});
+
+function develop(fig, i) {
+  if (!fig.classList.contains("raw")) return;
+  var veil = fig.querySelector(".veil span");
+  if (veil) veil.textContent = "显影中…";
+  fig.style.cursor = "default";
+  if (reduce) {
+    fig.classList.remove("raw");
+  } else {
+    /* 稍等一下再揭开，让"显影中"这三个字被看见一眼 */
+    setTimeout(function () { fig.classList.remove("raw"); }, 520);
+  }
+  done[i] = 1;
+  save();
+  update(1);
+}
+
+function update() {
+  var n = 0;
+  Object.keys(done).forEach(function (k) { if (done[k]) n++; });
+  n = Math.min(n, totalRaw);
+  var cntEl = document.getElementById("cnt");
+  cntEl.innerHTML = "你已显影 <b>" + n + "</b> / " + totalRaw + " 张";
+  if (n >= totalRaw) {
+    cntEl.innerHTML = "这一卷你全都显影出来了　<b>" + n + " / " + totalRaw + "</b>";
+    document.getElementById("reward").classList.add("on");
+  }
+}
+update();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>朋友们 · By deer | see 小鹿</title>
+<meta name="description" content="朋友们拍的照片">
+<link rel="stylesheet" href="css/style.css?v=20260927a55">
+</head>
+<body class="series-page cabinet-page">
+
+<nav class="snav">
+  <a class="snav-back" href="index.html">← 返回</a>
+  <div class="snav-logo">By deer&nbsp;|&nbsp;see 小鹿</div>
+  <div class="snav-social" id="navSocial"></div>
+</nav>
+
+<header class="shead">
+  <h1 id="cTitle">朋友们</h1>
+  <p id="cMeta"></p>
+</header>
+
+<main class="sbody">
+  <div class="archive-grid" id="cGrid"></div>
+</main>
+
+<script>
+/* ★ 这一页 = 「朋友们」那一层：把来源告诉 cabinet.js（它负责渲染卡片、跳转、返回原位）。
+   和专属片柜的区别只有两点：标题写死「朋友们」、列的是**有署名**的那些系列。 */
+window.__SEC__ = "contrib";
+</script>
+<script src="js/data.js?v=20260927a55"></script>
+<script src="js/cabinet.js?v=20260927a55"></script>
+</body>
+</html>

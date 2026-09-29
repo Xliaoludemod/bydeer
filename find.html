@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>找照片 · By deer ｜ see 小鹿</title>
+<meta name="description" content="直接说人话，找到你想看的那一张。">
+<style>
+:root{
+  --bg:#faf8f4; --ink:#2c2c2a; --ink-soft:#6b675f; --ink-faint:#a8a49b;
+  --line:#d8d5cc; --card:#efede6; --accent:#8a6d4a;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  background:var(--bg);color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  padding:0 0 90px;
+}
+
+/* ── 顶部导航 ───────────────────────────── */
+.nav{
+  height:62px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 30px;border-bottom:1px solid var(--line);background:rgba(250,248,244,.94);
+  position:sticky;top:0;z-index:20;backdrop-filter:blur(4px);
+}
+.nav > a{font-size:12px;letter-spacing:.14em;color:var(--ink-soft);text-decoration:none}
+.nav > a:hover{color:var(--ink)}
+.nav .logo{font-size:12.5px;letter-spacing:.22em;color:var(--ink)}
+.nav .social{display:flex;gap:9px}
+.nav .social a{
+  width:29px;height:29px;border-radius:50%;background:var(--card);
+  display:flex;align-items:center;justify-content:center;text-decoration:none;
+  font-size:11px;color:var(--ink-soft);transition:background .25s;
+}
+.nav .social a{position:relative}
+.nav .social a:hover{background:var(--line)}
+.nav .social img{width:15px;height:15px;border-radius:50%}
+
+/* 鼠标停在图标上弹出的小气泡（比如微信号） */
+.nav-tip{
+  position:absolute;top:calc(100% + 9px);right:-2px;left:auto;
+  transform:translateY(-4px);
+  background:rgba(30,28,24,.94);color:#fff;
+  font-size:11.5px;letter-spacing:.04em;line-height:1.2;
+  padding:8px 12px;border-radius:8px;white-space:nowrap;
+  max-width:62vw;overflow:hidden;text-overflow:ellipsis;
+  opacity:0;pointer-events:none;transition:opacity .12s,transform .12s;z-index:30;
+}
+.nav-tip::before{
+  content:"";position:absolute;bottom:100%;right:9px;
+  border:4px solid transparent;border-bottom-color:rgba(30,28,24,.94);
+}
+.nav .social a::after{content:"";position:absolute;inset:-9px}
+.nav .social a:hover .nav-tip,.nav .social a.show .nav-tip{opacity:1;transform:translateY(0)}
+
+/* ── 搜索框 ─────────────────────────────── */
+.search{max-width:1180px;margin:56px auto 0;padding:0 32px}
+.box{display:flex;gap:12px;align-items:center;
+  background:#fff;border:1px solid var(--line);border-radius:14px;padding:6px 8px 6px 20px;
+  transition:border-color .25s, box-shadow .25s}
+.box:focus-within{border-color:var(--accent);box-shadow:0 6px 24px rgba(138,109,74,.10)}
+.box input{
+  flex:1;border:none;outline:none;background:transparent;font-family:inherit;
+  font-size:15px;color:var(--ink);letter-spacing:.04em;padding:14px 0;min-width:0;
+}
+.box input::placeholder{color:#b8b3a9}
+.box button{
+  flex:none;border:none;border-radius:10px;background:var(--ink);color:#fff;
+  font-family:inherit;font-size:12.5px;letter-spacing:.14em;padding:12px 22px;cursor:pointer;
+}
+.box button:hover{opacity:.88}
+
+/* ── 快捷标签（只留少数几个，用户要求） ── */
+.chips{max-width:1180px;margin:18px auto 0;padding:0 32px;display:flex;flex-wrap:wrap;gap:8px}
+.chips button{
+  border:1px solid var(--line);background:#fff;border-radius:16px;padding:7px 14px;
+  font-family:inherit;font-size:11.5px;letter-spacing:.08em;color:var(--ink-soft);cursor:pointer;transition:.2s;
+}
+.chips button:hover{background:var(--card)}
+.chips button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+
+/* ── 结果信息 ───────────────────────────── */
+.meta{max-width:1180px;margin:30px auto 0;padding:0 32px;text-align:center}
+.meta .n{font-size:12px;letter-spacing:.14em;color:var(--ink-soft);font-variant-numeric:tabular-nums}
+.meta .n b{color:var(--accent);font-weight:500}
+
+/* ── 灯箱（点开照片）：和系列页同一套样式 ── */
+.lightbox {
+  position: fixed; inset: 0; z-index: 50;
+  background: rgba(20,20,18,.94);
+  display: none;
+  flex-direction: column;
+  align-items: center; justify-content: center;
+}
+.lightbox.open { display: flex; }
+.lb-figure { max-width: 88vw; max-height: 76vh; }
+.lb-figure img {
+  max-width: 88vw; max-height: 76vh;
+  object-fit: contain;
+  box-shadow: 0 12px 60px rgba(0,0,0,.5);
+}
+.lb-info {
+  margin-top: 22px; text-align: center; color: #cfcdc6;
+  max-width: 88vw;
+}
+/* 作品名（没有 work 的照片整行不显示） */
+.lb-work { font-size: 16px; letter-spacing: .16em; color: #fff; margin-bottom: 8px; }
+.lb-work:empty { display: none; }
+.lb-gear { font-size: 13px; letter-spacing: .12em; }
+.lb-share { margin-top: 12px; }
+.lb-share a {
+  display: inline-block;
+  padding: 9px 26px; border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.35);
+  color: #fff; text-decoration: none; font-size: 13px; letter-spacing: .12em;
+  transition: background .25s;
+}
+.lb-share a:hover { background: rgba(255,255,255,.12); }
+.lb-close, .lb-prev, .lb-next {
+  position: absolute; z-index: 2;
+  background: none; border: none; color: #fff;
+  font-size: 40px; line-height: 1; cursor: pointer;
+  opacity: .7; transition: opacity .2s;
+  font-family: inherit;
+}
+.lb-close:hover, .lb-prev:hover, .lb-next:hover { opacity: 1; }
+.lb-close { top: 22px; right: 30px; }
+.lb-prev { left: 26px; top: 50%; transform: translateY(-50%); }
+.lb-next { right: 26px; top: 50%; transform: translateY(-50%); }
+
+/* ── 卡片：只有照片 ─────────────────────── */
+.grid{
+  max-width:1244px;margin:18px auto 0;padding:0 26px;
+  display:flex;gap:26px;align-items:flex-start;
+}
+.col{flex:1 1 0;min-width:0;display:flex;flex-direction:column;gap:26px}
+
+.card{background:transparent;border:none;cursor:pointer;
+  animation:pop .5s cubic-bezier(.2,0,.2,1) both;
+  transition:transform .3s}
+.card:hover{transform:translateY(-3px)}
+@keyframes pop{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.card .ph{
+  position:relative;background:var(--card);overflow:hidden;
+  width:100%;aspect-ratio:var(--ar,3/2);
+  border-radius:14px;
+  box-shadow:0 1px 2px rgba(44,44,42,.06);
+  transition:box-shadow .3s;
+}
+.card:hover .ph{box-shadow:0 10px 30px rgba(44,44,42,.16)}
+.card .ph img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .6s}
+.card:hover .ph img{transform:scale(1.03)}
+.card .ph .tone{
+  position:absolute;left:12px;top:12px;font-size:10.5px;letter-spacing:.16em;
+  color:#fff;background:rgba(30,26,20,.42);border-radius:12px;padding:4px 11px;backdrop-filter:blur(1.5px);
+}
+
+.empty{max-width:1180px;margin:60px auto;padding:0 32px;text-align:center}
+.empty b{display:block;font-size:14px;font-weight:500;letter-spacing:.1em;color:var(--ink-soft)}
+.empty span{display:block;margin-top:12px;font-size:12px;line-height:2;color:var(--ink-faint)}
+
+@media(max-width:820px){
+  .nav{padding:0 18px}
+  .nav .logo{display:none}
+  .search,.chips,.meta,.grid,.empty{padding-left:20px;padding-right:20px}
+  .box{padding:5px 6px 5px 14px}
+  .box button{padding:11px 16px;letter-spacing:.08em}
+  .grid{gap:18px}
+}
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <a href="index.html">← 返回首页</a>
+  <div class="logo">By deer ｜ see 小鹿</div>
+  <div class="social" id="social"></div>
+</div>
+
+<div class="search">
+  <div class="box">
+    <input id="q" type="search" placeholder="试试：想看点安静的、水边的" autocomplete="off">
+    <button id="go">找</button>
+  </div>
+</div>
+
+<div class="chips" id="chips"></div>
+
+<div class="meta">
+  <div class="n" id="count"></div>
+</div>
+
+<div class="grid" id="grid"></div>
+<div class="empty" id="empty" style="display:none">
+  <b>没找到</b>
+  <span>换个说法试试 —— 或者说得更松一点，只写「水边」。</span>
+</div>
+
+<!-- 点开照片：用和系列页一模一样的灯箱 -->
+<div class="lightbox" id="lightbox">
+  <button class="lb-close" id="lbClose">×</button>
+  <button class="lb-prev" id="lbPrev">‹</button>
+  <button class="lb-next" id="lbNext">›</button>
+  <figure class="lb-figure"><img id="lbImg" alt=""></figure>
+  <div class="lb-info">
+    <div class="lb-work" id="lbWork"></div>
+    <div class="lb-gear" id="lbGear"></div>
+    <div class="lb-share" id="lbShare"></div>
+  </div>
+</div>
+
+<script src="js/data.js?v=20260927a55"></script>
+<script>
+(function(){
+"use strict";
+
+/* ================= 数据：把 data.js 里所有系列的照片摊平 ================= */
+var S = (typeof SITE !== "undefined" && SITE) ? SITE : null;
+/* 缩略图约定：同目录下的 th/ 子文件夹、同名。没有就退回大图 */
+function thumbOf(src) {
+  return String(src).replace(/\/([^/]+)$/, "/th/$1");
+}
+var PHOTOS = [];
+if (S && S.series) {
+  S.series.forEach(function (s) {
+    /* 明确标记 searchable:false 的系列整块跳过 ——
+       朋友的投稿作品不进搜索，搜什么都搜不到 */
+    if (s.searchable === false) return;
+    (s.photos || []).forEach(function (p) {
+      /* 单张也能标记不进搜索（p.searchable = false）——
+         比如一套里只有两三张有人物，其余照常能搜到 */
+      if (p.searchable === false) return;
+      if (!p.tags || !p.tags.length) return;      /* 没标注的不进搜索 */
+      PHOTOS.push({
+        src: p.src,
+        series: s.title,
+        slug: s.slug,
+        /* ★ 分区（film / digital / motion）—— 「数码 / 胶片」这种超大关键词靠它直接捞整区 */
+        section: s.section || "",
+        gear: p.gear || "",
+        link: p.link || "",
+        code: p.code || "",
+        credit: p.credit || s.credit || "",       /* 署名（只有投稿作品才有） */
+        tone: p.tone || "",
+        note: p.note || "",     /* 不显示，但排序时要看展签里有没有提到这个词 */
+        tags: p.tags
+      });
+    });
+  });
+}
+
+/* 复制到剪贴板（给"点一下复制微信号"用） */
+function fallbackCopy(t) {
+  var ta = document.createElement("textarea");
+  ta.value = t;
+  ta.setAttribute("readonly", "");
+  ta.style.cssText = "position:fixed;top:-9999px;opacity:0";
+  document.body.appendChild(ta);
+  ta.select();
+  try { document.execCommand("copy"); } catch (e) {}
+  document.body.removeChild(ta);
+}
+function copyText(t) {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    return navigator.clipboard.writeText(t).catch(function () { fallbackCopy(t); });
+  }
+  fallbackCopy(t);
+  return Promise.resolve();
+}
+/* "微信号：c08_yh0403" → "c08_yh0403"：只取冒号后面那截 */
+function copyPart(txt) {
+  var parts = String(txt).split(/[：:]/);
+  return (parts.length > 1 ? parts.slice(1).join("：") : parts[0]).trim();
+}
+
+/* 社交图标 */
+var socEl = document.getElementById("social");
+if (S && S.social) {
+  S.social.forEach(function (it) {
+    var a = document.createElement("a");
+    var linked = it.url && /^https?:/i.test(it.url);
+    if (linked) { a.href = it.url; a.target = "_blank"; a.rel = "noopener"; }
+    /* 用 aria-label 而不是 title：title 会多弹一个浏览器原生提示框（两个气泡） */
+    a.setAttribute("aria-label", it.name);
+    if (it.icon && /\.(png|jpe?g|svg|webp)$/i.test(it.icon)) {
+      a.innerHTML = '<img src="icons/' + it.icon + '" alt="' + it.name + '">';
+    } else {
+      a.textContent = it.icon || it.name.slice(0, 1);
+    }
+    /* 每个图标都有悬停气泡：有 tip 用 tip，没有就用名字 */
+    var tip = document.createElement("span");
+    tip.className = "nav-tip";
+    tip.textContent = it.tip || it.name;
+    a.appendChild(tip);
+    a.addEventListener("mouseenter", function () { a.classList.add("show"); });
+    a.addEventListener("mouseleave", function () { a.classList.remove("show"); });
+    /* 没链接、但填了 tip 的图标（比如微信）→ 点一下复制 tip 里的号 */
+    if (!linked && it.tip) {
+      a.style.cursor = "pointer";
+      a.addEventListener("click", function (e) {
+        e.preventDefault();
+        copyText(copyPart(it.tip));
+        var old = tip.textContent;
+        tip.textContent = "已复制 ✓";
+        a.classList.add("show");
+        setTimeout(function () { tip.textContent = old; }, 1800);
+      });
+    } else if (!linked) {
+      a.addEventListener("click", function (e) { e.preventDefault(); });
+    }
+    socEl.appendChild(a);
+  });
+}
+
+/* ================= 说法库：把人的话翻成标签 ================= */
+var SYN = {
+  "安静": ["安静", "静", "宁静", "平静", "清清", "清净", "安宁", "冷清", "孤独", "独处", "没人", "空旷", "空旷点"],
+  "水边": ["水边", "水", "海", "海边", "海上", "岸", "码头", "河边", "湖", "浪", "潮", "水面", "看海"],
+  "夜":   ["夜", "夜晚", "晚上", "深夜", "黑", "暗", "昏", "低光", "夜景", "天黑"],
+  "黄昏": ["黄昏", "傍晚", "日落", "夕阳", "日暮", "落日"],
+  "午后": ["午后", "下午", "中午", "正午", "白天", "午", "大白天"],
+  "暖":   ["暖", "暖色", "黄", "金", "橙", "棕", "旧", "复古", "暖调", "暖一点"],
+  "冷":   ["冷", "冷色", "蓝", "青", "深蓝", "青蓝", "冷调", "冷一点"],
+  "灰":   ["灰", "灰色", "灰调", "素", "淡", "低饱和", "黑白", "不要彩色", "去色", "清淡"],
+  "留白": ["留白", "极简", "简约", "干净", "空一点", "简单", "少一点", "利落"],
+  "开阔": ["开阔", "空旷", "辽阔", "大气", "远", "视野", "大景", "宽广"],
+  "剪影": ["剪影", "影子", "轮廓", "逆光"],
+  "日常": ["日常", "生活", "人味", "小事", "普通", "生活感"],
+  "人":   ["人", "有人", "人物", "人影", "背影", "人像"],
+  "高调": ["亮", "明亮", "高调", "通透", "轻", "很亮", "亮一点"],
+  "低调": ["暗一点", "压暗", "低调", "压抑", "沉", "很暗"],
+  "微距": ["微距", "特写", "近", "细节", "放大", "局部"],
+  "雾":   ["雾", "起雾", "朦胧", "模糊", "看不清", "雾气", "空灵", "仙"],
+  "树":   ["树", "森林", "树林", "大树", "树下", "树荫", "树影", "树梢",
+           "枝", "枝叶", "叶子", "树叶", "林", "林荫", "绿荫", "绿树",
+           "松", "松树", "松枝", "松林", "针叶", "植物", "草木"]
+};
+/* 反向索引：一个人说的词 → 可能对应的标签 */
+var LOOKUP = {};
+Object.keys(SYN).forEach(function (tag) {
+  SYN[tag].forEach(function (w) { (LOOKUP[w] = LOOKUP[w] || []).push(tag); });
+});
+
+/* ================= 两个「超大」关键词：按分区搜 =================
+   说「数码」= 把像素·数码整个分区的照片都捞出来；说「胶片」= 银盐·胶片整区。
+   ★ 走分区判断，**不靠标签** —— 以后新照片进来自动跟着生效，不用逐张补「数码/胶片」标签。
+   词表就在这儿，想加说法直接加（比如「菲林」「无反」「微单」）。 */
+var SECTION_WORDS = {
+  film:    ["胶片", "银盐", "胶卷", "菲林", "底片", "film", "负片", "正片", "反转"],
+  digital: ["数码", "数字", "数码相机", "digital", "无反", "微单", "单反"]
+};
+function sectionsWanted(q, picks) {
+  var raw = ((q || "") + " " + (picks || []).join(" ")).toLowerCase();
+  var out = [];
+  Object.keys(SECTION_WORDS).forEach(function (key) {
+    var hit = SECTION_WORDS[key].some(function (w) { return raw.indexOf(w.toLowerCase()) >= 0; });
+    if (hit) out.push(key);
+  });
+  return out;
+}
+
+/* ================= 检索 ================= */
+/* ★ 把概念「展开」成它覆盖的全部同义词。
+   只认概念键名的话，标签是「海」的照片搜「水边」命中不了 ——
+   水边这个概念白写了「海/海边/浪」这些词。展开后双向包含才真的生效。
+   （快捷标签走的也是这条路，否则点「水边」还是只出 2 张。） */
+function expandConcepts(keys) {
+  var out = [];
+  keys.forEach(function (k) {
+    if (out.indexOf(k) < 0) out.push(k);
+    (SYN[k] || []).forEach(function (w) {
+      if (out.indexOf(w) < 0) out.push(w);
+    });
+  });
+  return out;
+}
+
+function conceptTags(q) {
+  var raw = (q || "").trim();
+  var found = [];
+  if (!raw) return found;
+  function push(t) { if (found.indexOf(t) < 0) found.push(t); }
+  var chunks = raw.split(/[\s,，、。·;；\/]+/).filter(Boolean);
+  chunks.concat([raw]).forEach(function (w) {
+    var hit = LOOKUP[w];
+    if (hit) hit.forEach(push);
+  });
+  /* 中文没有空格：再对整句做子串匹配 */
+  Object.keys(LOOKUP).forEach(function (w) {
+    if (w.length >= 2 && raw.indexOf(w) >= 0) LOOKUP[w].forEach(push);
+  });
+  return expandConcepts(found);
+}
+/* 一个词能不能算命中这张图的某个标签（概念命中与字面命中共用同一套判据，
+   就是原来字面命中那两条「双向包含」规则，原样搬过来） */
+function tagHits(w, t) {
+  if (t === w) return true;
+  /* 标签里含这个词：单字只认短标签，免得「空」把「天空」也算进来 */
+  if (t.indexOf(w) >= 0 && (w.length >= 2 || t.length <= 3)) return true;
+  /* 这个词里含某个标签 */
+  if (t.length >= 2 && w.indexOf(t) >= 0) return true;
+  return false;
+}
+
+function search(q, picks) {
+  var raw = (q || "").trim();
+  /* picks 是快捷标签（本身就是概念名），也要一起展开，否则点「水边」只有 2 张 */
+  var wanted = conceptTags(raw).concat(expandConcepts(picks || []));
+  /* ★ 超大关键词（数码 / 胶片）→ 直接把整个分区捞出来，不看标签 */
+  var secWant = sectionsWanted(raw, picks);
+  if (!wanted.length && !raw) return { rows: [], hit: [] };
+
+  var rows = [];
+  PHOTOS.forEach(function (p) {
+    var hit = [];
+    /* 零、分区命中：说「数码」把整个像素·数码捞出来；说「胶片」把整个银盐·胶片捞出来 */
+    if (secWant.length && secWant.indexOf(p.section) >= 0) {
+      hit.push(p.section === "digital" ? "数码" : "胶片");
+    }
+    /* 一、概念命中：把话翻译成「概念名 + 它覆盖的同义词」之后，按同一套双向包含去对标签。
+       只做相等判断的话，标签是「海」的照片搜「水边」命中不了 —— 这正是之前的漏洞。 */
+    if (wanted.length) {
+      p.tags.forEach(function (t) {
+        if (hit.indexOf(t) >= 0) return;
+        for (var k = 0; k < wanted.length; k++) {
+          if (tagHits(wanted[k], t)) { hit.push(t); return; }
+        }
+      });
+    }
+    /* 二、字面命中：用户直接说了这张图里的词。
+       双向包含 —— 说「船」要能找到标签「船栏」，说「安静的水边」要能找到标签「安静」 */
+    if (raw) {
+      var toks = raw.split(/[的了的\s,，、.。;；:：!！?？\/|+]+/)
+                    .filter(function (x) { return x.length > 0; });
+      p.tags.forEach(function (t) {
+        if (hit.indexOf(t) >= 0) return;
+        for (var k = 0; k < toks.length; k++) {
+          if (tagHits(toks[k], t)) { hit.push(t); return; }
+        }
+      });
+    }
+    if (!hit.length) return;
+    var score = hit.length * 3;
+    hit.forEach(function (t) { if (p.note.indexOf(t) >= 0) score += 1; });
+    rows.push({ p: p, hit: hit, score: score });
+  });
+  rows.sort(function (a, b) { return b.score - a.score; });
+
+  /* 命中的标签去重（只用于排序，页面上不显示） */
+  var clue = [];
+  rows.forEach(function (r) {
+    r.hit.forEach(function (t) { if (clue.indexOf(t) < 0) clue.push(t); });
+  });
+  return { rows: rows, hit: clue };
+}
+
+/* ================= 渲染 ================= */
+var grid    = document.getElementById("grid"),
+    countEl = document.getElementById("count"),
+    emptyEl = document.getElementById("empty"),
+    qEl     = document.getElementById("q"),
+    chipsEl = document.getElementById("chips");
+
+var picks = [];
+var curList = [];     /* 当前这一批结果 —— 灯箱左右翻页就靠它 */
+
+/* 卡片只有照片。文字留给系列页 —— 这里让照片自己说话。 */
+function cardHTML(p) {
+  return '<div class="ph"><img src="' + thumbOf(p.src) + '" alt="' + p.series + '" loading="lazy" draggable="false">' +
+         (p.tone ? '<div class="tone">' + p.tone + '</div>' : '') +
+         (p.credit ? '<span class="credit">' + p.credit + '</span>' : '') +
+         '</div>';
+}
+
+/* 按照片原生比例决定卡片形状 —— 竖图就该是竖的，不裁 */
+function setRatio(c, w, h) {
+  var ph = c.querySelector(".ph");
+  if (ph && w && h) ph.style.setProperty("--ar", w + "/" + h);
+  c._ar = (w && h) ? h / w : 2 / 3;
+}
+
+/* 分列：每张塞进当前最短的那一列 —— 竖图会自己撑高它那一列 */
+var colEls = [], colH = [];
+var COLS = 4;
+function colsNow() {
+  var w = grid.getBoundingClientRect().width;
+  if (w < 560) return 1;
+  if (w < 860) return 2;
+  return Math.min(COLS, Math.max(2, Math.round(w / 300)));
+}
+
+function mountCard(p, i) {
+  var c = document.createElement("figure");
+  c.className = "card";
+  c.style.animationDelay = (i * 45) + "ms";
+  c.innerHTML = cardHTML(p);
+  /* 点一下 =就地打开这张照片（灯箱），不再跳去系列页。
+     注意：每个 var 单独一行 —— 同一个 var 里混着 if/else 会让后半句永远不执行 */
+  c.addEventListener("click", function () { openLb(i); });
+  var img = c.querySelector("img");
+  /* 没生成缩略图的照片：自动退回大图 */
+  if (img) img.addEventListener("error", function onErr() {
+    img.removeEventListener("error", onErr);
+    img.src = p.src;
+  });
+  if (img && img.complete && img.naturalWidth) {
+    setRatio(c, img.naturalWidth, img.naturalHeight);
+  } else if (img) {
+    img.addEventListener("load", function () {
+      setRatio(c, img.naturalWidth, img.naturalHeight);
+    });
+  }
+  var n = colsNow();
+  while (colEls.length < n) {
+    var col = document.createElement("div");
+    col.className = "col";
+    grid.appendChild(col);
+    colEls.push(col);
+    colH.push(0);            /* 新列的高度必须初始化，否则 undefined 比较永远为假 */
+  }
+  /* 找最短的列 */
+  var best = 0, bestH = colH[0];
+  for (var k = 1; k < n; k++) {
+    if (colH[k] < bestH) { bestH = colH[k]; best = k; }
+  }
+  colEls[best].appendChild(c);
+  colH[best] += (c._ar || 2 / 3) + 0.09;
+}
+
+function render() {
+  var q = qEl.value;
+  var active = (q.trim() || picks.length);
+  grid.innerHTML = "";      /* 连同旧的列一起清掉 */
+  countEl.innerHTML = "";
+  colEls = []; colH = [];
+
+  if (!active) {
+    grid.style.display = "flex";
+    emptyEl.style.display = "none";
+    countEl.innerHTML = PHOTOS.length
+      ? "全部 <b>" + PHOTOS.length + "</b> 张"
+      : "照片整理中";   /* 一张都还没进来时的占位 */
+    curList = PHOTOS.slice();
+    PHOTOS.forEach(function (p, i) { mountCard(p, i); });
+    return;
+  }
+
+  var res = search(q, picks);
+  if (!res.rows.length) {
+    grid.style.display = "none";
+    emptyEl.style.display = "block";
+    countEl.innerHTML = "找到 <b>0</b> 张";
+    curList = [];
+    return;
+  }
+  grid.style.display = "flex";
+  emptyEl.style.display = "none";
+  countEl.innerHTML = "找到 <b>" + res.rows.length + "</b> 张";
+  curList = res.rows.map(function (r) { return r.p; });
+  res.rows.forEach(function (r, i) { mountCard(r.p, i); });
+}
+
+/* ================= 灯箱：点开照片就地看 =================
+   样式与系列页完全一致，左右键翻的是「当前这批结果」 */
+var lbEl    = document.getElementById("lightbox"),
+    lbImg   = document.getElementById("lbImg"),
+    lbGear  = document.getElementById("lbGear"),
+    lbShare = document.getElementById("lbShare"),
+    lbWork  = document.getElementById("lbWork"),
+    lbPrev  = document.getElementById("lbPrev"),
+    lbNext  = document.getElementById("lbNext");
+var lbIdx = 0;
+
+function renderLb() {
+  var p = curList[lbIdx];
+  if (!p) return;
+  lbImg.draggable = false;
+  lbImg.src = p.src;                       /* 放大看大图，不是缩略图 */
+  lbImg.alt = p.series || "";
+  /* 器材后面接署名（只有投稿作品才有 credit） */
+  lbWork.textContent = p.work || "";     /* 作品名，没有就留空 → 整行不显示 */
+  lbGear.textContent = [p.gear || "", p.credit || ""].filter(Boolean).join(" · ");
+  lbShare.innerHTML = "";
+  if (p.link) {
+    var a = document.createElement("a");
+    a.href = p.link; a.target = "_blank"; a.rel = "noopener";
+    a.textContent = "网盘下载原图" + (p.code ? "（提取码 " + p.code + "）" : "");
+    lbShare.appendChild(a);
+  }
+  var multi = curList.length > 1;
+  lbPrev.style.display = multi ? "" : "none";
+  lbNext.style.display = multi ? "" : "none";
+}
+
+function openLb(i) {
+  lbIdx = i;
+  renderLb();
+  lbEl.classList.add("open");
+  document.body.style.overflow = "hidden";
+}
+function closeLb() {
+  lbEl.classList.remove("open");
+  document.body.style.overflow = "";
+}
+
+document.getElementById("lbClose").addEventListener("click", closeLb);
+lbPrev.addEventListener("click", function () {
+  lbIdx = (lbIdx - 1 + curList.length) % curList.length; renderLb();
+});
+lbNext.addEventListener("click", function () {
+  lbIdx = (lbIdx + 1) % curList.length; renderLb();
+});
+lbEl.addEventListener("click", function (e) { if (e.target === lbEl) closeLb(); });
+document.addEventListener("keydown", function (e) {
+  if (!lbEl.classList.contains("open")) return;
+  if (e.key === "Escape") closeLb();
+  if (e.key === "ArrowLeft") lbPrev.click();
+  if (e.key === "ArrowRight") lbNext.click();
+});
+
+/* 窗口变了，列数跟着变 —— 重新分一次列 */
+var rzTimer = null, lastCols = colsNow();
+window.addEventListener("resize", function () {
+  clearTimeout(rzTimer);
+  rzTimer = setTimeout(function () {
+    if (colsNow() !== lastCols) { lastCols = colsNow(); render(); }
+  }, 180);
+});
+
+/* ================= 交互 ================= */
+document.getElementById("go").addEventListener("click", render);
+qEl.addEventListener("keydown", function (e) { if (e.key === "Enter") render(); });
+var timer = null;
+qEl.addEventListener("input", function () {
+  clearTimeout(timer);
+  /* 手动打字 → 放弃标签选择，免得跟标签叠在一起搜 */
+  if (picks.length) {
+    picks = [];
+    var ons = document.querySelectorAll(".chips button.on");
+    for (var k = 0; k < ons.length; k++) ons[k].classList.remove("on");
+  }
+  timer = setTimeout(render, 220);
+});
+
+/* ================= 快捷标签（只留少数几个） =================
+   只在「现有照片里真的存在」的词里挑，最多 6 个。
+   点标签 = 以标签为准：**清掉输入框里的字**，不和框里的旧词叠着搜。 */
+var freq = {};
+PHOTOS.forEach(function (p) { p.tags.forEach(function (t) { freq[t] = (freq[t] || 0) + 1; }); });
+var PREFER = ["安静", "水边", "夜", "暖", "冷", "灰", "人", "黄昏", "日常", "微距"];
+var MAX_CHIPS = 6;
+var chipList = PREFER.filter(function (t) { return freq[t]; }).slice(0, MAX_CHIPS);
+chipList.forEach(function (t) {
+  var b = document.createElement("button");
+  b.textContent = t;
+  b.addEventListener("click", function () {
+    var i = picks.indexOf(t);
+    if (i >= 0) { picks.splice(i, 1); b.classList.remove("on"); }
+    else { picks.push(t); b.classList.add("on"); }
+    qEl.value = "";                  /* 点标签就不再看框里那串字 */
+    render();
+  });
+  chipsEl.appendChild(b);
+});
+
+/* 网址参数：find.html?q=安静的水边
+   —— 结果照常按这个词出，但**搜索框里不留字**（用户要求：跳转过来就是干净的框） */
+try {
+  var q0 = new URLSearchParams(location.search).get("q");
+  if (q0) {
+    qEl.value = "";                       /* 框里不留字 */
+    renderFromQuery(q0);
+  } else {
+    render();
+  }
+} catch (e) {
+  render();
+}
+
+/* 按外来关键词出结果，但不动输入框 */
+function renderFromQuery(q) {
+  var res = search(q, []);
+  grid.innerHTML = "";
+  countEl.innerHTML = "";
+  colEls = []; colH = [];
+  if (!res.rows.length) {
+    grid.style.display = "none";
+    emptyEl.style.display = "block";
+    countEl.innerHTML = "找到 <b>0</b> 张";
+    curList = [];
+    return;
+  }
+  grid.style.display = "flex";
+  emptyEl.style.display = "none";
+  countEl.innerHTML = "找到 <b>" + res.rows.length + "</b> 张";
+  curList = res.rows.map(function (r) { return r.p; });
+  res.rows.forEach(function (r, i) { mountCard(r.p, i); });
+}
+
+})();
+
+/* 图片防盗用（只是门槛，不是锁）：挡住右键另存为和拖拽。
+   范围含灯箱整块。挡不住开发者工具 / 截图 / 抓包 */
+document.addEventListener("contextmenu", function (e) {
+  var t = e.target;
+  if (t.tagName === "IMG" || (t.closest && t.closest(".lightbox"))) e.preventDefault();
+});
+document.addEventListener("dragstart", function (e) {
+  if (e.target.tagName === "IMG") e.preventDefault();
+});
+</script>
+</body>
+</html>

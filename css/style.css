@@ -1,0 +1,489 @@
+/* ========== By deer | see 小鹿 ========== */
+:root {
+  --bg: #faf8f4;
+  --ink: #2c2c2a;
+  --ink-soft: #6f6e68;
+  --ink-faint: #a3a29a;
+  --line: #d8d5cc;
+  --card: #efede6;
+  --maxw: 1200px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: "Songti SC", "Noto Serif SC", "Source Han Serif SC", Georgia, serif;
+  -webkit-font-smoothing: antialiased;
+}
+img {
+  display: block;
+  /* 防盗用门槛：禁止拖拽保存、禁止长按弹出保存菜单、禁止选中 */
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* ---------- 首屏 ---------- */
+.hero {
+  position: relative;
+  height: 100vh;
+  min-height: 560px;
+  overflow: hidden;
+}
+.hero-slides, .hero-blur { position: absolute; inset: 0; }
+.hero-slides img {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 1.6s ease;
+}
+.hero-slides img.on { opacity: 1; }
+/* 开场那一张淡入快一点（JS 加 0.7 秒后自动摘掉），别让人对着黑屏等 1.6 秒 */
+.hero-slides.fast img { transition-duration: .5s; }
+.hero-blur {
+  background-size: cover;
+  background-position: center;
+  /* 竖图两侧的模糊填充层。60px 糊得太死，照片结构全丢了；
+     降到 26px 还能看出是「哪张照片」，又不会抢主体 */
+  filter: blur(26px) brightness(0.92);
+  transform: scale(1.16);
+  z-index: 0;
+}
+.hero-slides { z-index: 1; }
+.hero-slides.contain img { object-fit: contain; }
+
+/* 很淡的一层暗色渐变，压在图上面、文字(3)和导航(4)下面：
+   顶部给导航、中部给标题、底部给「向下滑动」各压一点。
+   为的是亮底照片也能读白字 —— 小巴黎的粉天空、杭州慢生活 09 的那面白墙
+   （实测杭州 09 中间横带均值 147，不加这层标题几乎看不见）。
+   pointer-events:none 是必须的，否则会拦住整屏的鼠标事件。 */
+.hero::after {
+  content: "";
+  position: absolute; inset: 0; z-index: 2;
+  pointer-events: none;
+  background: linear-gradient(180deg,
+    rgba(0, 0, 0, .30) 0%,
+    rgba(0, 0, 0, .06) 26%,
+    rgba(0, 0, 0, .16) 55%,
+    rgba(0, 0, 0, .38) 100%);
+}
+
+.nav {
+  /* 必须高于 .hero-text：两者同为 3 时，后出现的 .hero-text 会整片盖住导航，
+     导致图标点不到、鼠标不变手型、悬停气泡不出现 */
+  position: absolute; z-index: 4;
+  top: 0; left: 0; right: 0;
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 28px 48px;
+}
+.nav-logo { font-size: 15px; letter-spacing: .12em; color: #fff; text-shadow: 0 1px 8px rgba(0,0,0,.35); }
+.nav-social { display: flex; gap: 18px; align-items: center; }
+.nav-social a {
+  position: relative;
+  width: 26px; height: 26px; border-radius: 50%;
+  background: none;
+  display: flex; align-items: center; justify-content: center;
+  text-decoration: none; font-size: 12px; color: #fff;
+  transition: transform .25s;
+}
+.nav-social a:hover { transform: translateY(-2px); }
+
+/* 鼠标停在图标上弹出的小气泡（比如微信号）
+   用右对齐而不是居中：图标都在导航栏右端，居中会顶出屏幕右边 */
+.nav-tip {
+  position: absolute; top: calc(100% + 9px); right: -2px; left: auto;
+  transform: translateY(-4px);
+  background: rgba(30,28,24,.94); color: #fff;
+  font-size: 11.5px; letter-spacing: .04em; line-height: 1.2;
+  padding: 8px 12px; border-radius: 8px; white-space: nowrap;
+  max-width: 62vw; overflow: hidden; text-overflow: ellipsis;
+  opacity: 0; pointer-events: none;
+  transition: opacity .12s, transform .12s;
+  z-index: 30;
+}
+.nav-tip::before {
+  content: ""; position: absolute; bottom: 100%; right: 9px;
+  border: 4px solid transparent; border-bottom-color: rgba(30,28,24,.94);
+}
+/* 热区比图标本身大一圈，鼠标不用精准地对准 */
+.nav-social a::after { content: ""; position: absolute; inset: -9px; }
+.nav-social a:hover .nav-tip,
+.nav-social a.show .nav-tip { opacity: 1; transform: translateY(0); }
+/* 图标直接浮在首图上（没有白底）：转成纯白。
+   只留一丝极淡的投影，够在亮照片上分清边界就行，不要有"贴纸"感 */
+.nav-social img {
+  width: 22px; height: 22px;
+  filter: brightness(0) invert(1) drop-shadow(0 1px 2px rgba(0,0,0,.26));
+}
+/* 小红书的图标 SVG 是「深色方块 + 挖空的三角」，所以和别的图标一样整体转白：
+   方块变白、三角变成洞（透出照片）。系列页用的是浅色底、不转白，深色方块正好清楚。 */
+
+/* ---------- 首图上的搜索框（尽量隐身，鼠标进/聚焦时才浮起来） ---------- */
+.nav-search {
+  position: absolute; left: 50%; transform: translateX(-50%);
+  display: flex; align-items: center; gap: 8px;
+  width: min(340px, 38vw);
+  padding: 0 4px 0 16px;
+  background: rgba(255,255,255,.13);
+  border: 1px solid rgba(255,255,255,.30);
+  border-radius: 999px;
+  backdrop-filter: blur(2.5px);
+  -webkit-backdrop-filter: blur(2.5px);
+  transition: background .3s, border-color .3s;
+}
+.nav-search:hover { border-color: rgba(255,255,255,.38); }
+.nav-search:focus-within {
+  background: rgba(255,255,255,.18);
+  border-color: rgba(255,255,255,.6);
+}
+.nav-search input {
+  flex: 1; min-width: 0;
+  border: none; outline: none; background: transparent;
+  font-family: inherit; font-size: 12.5px; letter-spacing: .02em;
+  color: rgba(255,255,255,.9); padding: 10px 0;
+}
+.nav-search input::placeholder { color: rgba(255,255,255,.24); }
+.nav-search input::-webkit-search-cancel-button { display: none; }
+.nav-search button {
+  flex: none; width: 28px; height: 28px; border: none; border-radius: 50%;
+  background: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background .25s;
+}
+.nav-search button:hover { background: rgba(255,255,255,.20); }
+.nav-search button svg { width: 15px; height: 15px; display: block; }
+
+.hero-text {
+  position: absolute; z-index: 3;
+  inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  text-align: center; color: #fff;
+  text-shadow: 0 2px 16px rgba(0,0,0,.4);
+  /* 它铺满整屏，但纯属装饰文字。不加这句会拦住下面所有鼠标事件 */
+  pointer-events: none;
+}
+.hero-text h1 {
+  font-size: clamp(30px, 5.4vw, 58px);
+  font-weight: 500; letter-spacing: .28em; text-indent: .28em;
+}
+.hero-text p {
+  margin-top: 20px;
+  font-size: clamp(12px, 1.4vw, 15px);
+  letter-spacing: .35em; text-indent: .35em;
+  opacity: .92;
+}
+.hero-dots {
+  position: absolute; z-index: 3;
+  bottom: 72px; left: 50%; transform: translateX(-50%);
+  display: flex; gap: 10px;
+}
+.hero-dots i {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: rgba(255,255,255,.45);
+  cursor: pointer; transition: background .3s;
+}
+.hero-dots i.on { background: #fff; }
+.hero-scroll {
+  position: absolute; z-index: 3;
+  bottom: 28px; left: 50%; transform: translateX(-50%);
+  color: rgba(255,255,255,.85); font-size: 12px; letter-spacing: .3em;
+  animation: bob 2.2s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes bob { 0%,100% { transform: translate(-50%,0); } 50% { transform: translate(-50%,7px); } }
+
+/* ---------- 分栏索引 ---------- */
+main { max-width: var(--maxw); margin: 0 auto; padding: 0 48px; }
+.index-section {
+  display: grid;
+  /* ★ 2026-09-30（C 方案）：展示框要固定 630 宽（= 3:2 比例下的 420 高）。
+     窗口不够宽时**先缩左边那列、再缩列间距**，把宽度让给框 —— 否则宽度缺口全从框身上扣，
+     窗口一窄框就变小（1100px 窗口时只剩 515×343）。
+     % 按栅格容器宽（= main 内容宽，最大 1104）算：1104 − 340 − 134 = 630。
+     · 容器宽 964～1104：左列 340→200，间距恒 134，框恒 630
+     · 容器宽 870～964 ：左列已到 200，改为缩间距 134→40，框仍恒 630
+     · 更窄才会开始缩框（约窗口 980px 以下），≤820px 走下面的单栏布局 */
+  grid-template-columns: clamp(200px, calc(100% - 764px), 340px) minmax(0, 1fr);
+  gap: 72px;
+  column-gap: clamp(40px, calc(100% - 830px), 134px);
+  padding: 260px 0 160px;
+}
+.index-item { padding: 26px 0 30px; cursor: default; }
+.index-item.linked { cursor: pointer; }   /* 配了 cabinet 的分区才能点进去 → 给手型 */
+.index-item h3 {
+  font-size: 21px; font-weight: 500; letter-spacing: .1em;
+  transition: color .3s, transform .3s;
+}
+.index-item p { margin-top: 8px; font-size: 13px; color: var(--ink-faint); letter-spacing: .08em; }
+.index-item + .index-item { border-top: 1px solid var(--line); }
+.index-item:hover h3, .index-item.active h3 { color: #8a6d4a; transform: translateX(6px); }
+
+.index-preview {
+  position: relative;
+  background: var(--card);
+  border-radius: 10px;
+  overflow: hidden;
+  /* ★ 2026-09-30：框改成 3:2 —— 跟站里最多的照片比例（26.5% 是 3:2）一致，
+     这样 1.5 的图放进来**一点不裁**（改之前框是 1.648:1，树琴/绿光都要上下各切 4.45%）。
+     窗口 ≥ ~1311px 时框 = 630×420（列宽 630 由上面的 column-gap:134px 定出来）。
+     ⚠️ **不要再加 `min-height`** —— 实测过：`aspect-ratio` + `min-height:420px` 会让这个盒子的
+     **最小宽度变成 630**，栅格列就缩不下去，窗口 ≤1280 时页面横向溢出到 267px（2026-09-30 踩过）。
+     下面那句 `min-width:0` 是配套的保险（允许列缩到比内容更窄）。 */
+  aspect-ratio: 3 / 2;
+  min-width: 0;
+}
+.index-preview img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  transition: opacity .45s ease;
+  position: absolute; inset: 0;
+}
+.index-preview img.fade { opacity: 0; }
+.preview-caption {
+  position: absolute; left: 24px; right: 24px; bottom: 20px;
+  display: flex; justify-content: space-between; align-items: baseline;
+  color: #fff; text-shadow: 0 1px 6px rgba(0,0,0,.5);
+  font-size: 13px; letter-spacing: .1em;
+}
+.preview-caption span:last-child { color: rgba(255,255,255,.75); font-size: 12px; }
+
+/* ---------- 档案图墙 ---------- */
+.archive-section { padding: 40px 0 160px; }
+.filter-row { display: flex; gap: 12px; margin-bottom: 44px; flex-wrap: wrap; }
+.filter-row button {
+  font-family: inherit;
+  padding: 8px 22px; border-radius: 999px;
+  border: 1px solid var(--line); background: transparent;
+  font-size: 13px; letter-spacing: .1em; color: var(--ink-soft);
+  cursor: pointer; transition: all .25s;
+}
+.filter-row button.on { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+
+.archive-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 40px 36px;
+}
+.series-card { cursor: pointer; }
+.series-card .cover {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--card);
+}
+.series-card .cover img {
+  width: 100%; height: 100%; object-fit: cover;
+  transition: transform .6s ease, filter .6s ease;
+  /* 封面留一点模糊，让下面的系列名仍然读得出来；悬停即还原 */
+  filter: blur(2.5px) brightness(1.02);
+  transform: scale(1.03);
+}
+.series-card:hover .cover img { filter: blur(0); transform: scale(1); }
+.series-card .cover .glass {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(250,248,244,.12);
+  transition: opacity .5s;
+}
+.series-card:hover .cover .glass { opacity: 0; }
+.series-card h4 { margin-top: 16px; font-size: 16px; font-weight: 500; letter-spacing: .08em; }
+.series-card p { margin-top: 5px; font-size: 12px; color: var(--ink-faint); letter-spacing: .12em; }
+
+/* ---------- 灯箱 ---------- */
+.lightbox {
+  position: fixed; inset: 0; z-index: 50;
+  background: rgba(20,20,18,.94);
+  display: none;
+  flex-direction: column;
+  align-items: center; justify-content: center;
+}
+.lightbox.open { display: flex; }
+.lb-figure { max-width: 88vw; max-height: 76vh; }
+.lb-figure img {
+  max-width: 88vw; max-height: 76vh;
+  object-fit: contain;
+  box-shadow: 0 12px 60px rgba(0,0,0,.5);
+}
+.lb-info {
+  margin-top: 22px; text-align: center; color: #cfcdc6;
+  max-width: 88vw;
+}
+/* 作品名（点开照片时显示在最上面；没有 work 的照片就整行不显示） */
+.lb-work { font-size: 16px; letter-spacing: .16em; color: #fff; margin-bottom: 8px; }
+.lb-work:empty { display: none; }
+.lb-gear { font-size: 13px; letter-spacing: .12em; }
+.lb-share { margin-top: 12px; }
+.lb-share a {
+  display: inline-block;
+  padding: 9px 26px; border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.35);
+  color: #fff; text-decoration: none; font-size: 13px; letter-spacing: .12em;
+  transition: background .25s;
+}
+.lb-share a:hover { background: rgba(255,255,255,.12); }
+.lb-close, .lb-prev, .lb-next {
+  position: absolute; z-index: 2;
+  background: none; border: none; color: #fff;
+  font-size: 40px; line-height: 1; cursor: pointer;
+  opacity: .7; transition: opacity .2s;
+  font-family: inherit;
+}
+.lb-close:hover, .lb-prev:hover, .lb-next:hover { opacity: 1; }
+.lb-close { top: 22px; right: 30px; }
+.lb-prev { left: 26px; top: 50%; transform: translateY(-50%); }
+.lb-next { right: 26px; top: 50%; transform: translateY(-50%); }
+
+/* ========== 系列页 ========== */
+.series-page { background: var(--bg); }
+
+.snav {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 24px 48px;
+  max-width: var(--maxw); margin: 0 auto;
+}
+.snav a { text-decoration: none; color: var(--ink-soft); }
+.snav-back { font-size: 14px; letter-spacing: .1em; transition: color .25s; }
+.snav-back:hover { color: var(--ink); }
+.snav-logo { font-size: 14px; letter-spacing: .12em; color: var(--ink); }
+.snav-social { display: flex; gap: 10px; }
+.snav-social a {
+  position: relative;
+  width: 30px; height: 30px; border-radius: 50%;
+  background: var(--card); display: flex; align-items: center; justify-content: center;
+  font-size: 11px; color: var(--ink-soft);
+  transition: background .25s;
+}
+.snav-social a:hover { background: var(--line); }
+.snav-social img { width: 16px; height: 16px; }
+
+/* 系列页上的悬停气泡（同样右对齐，避免顶出屏幕） */
+.snav-tip {
+  position: absolute; top: calc(100% + 12px); right: -2px; left: auto;
+  transform: translateY(-4px);
+  background: rgba(30,28,24,.94); color: #fff;
+  font-size: 11.5px; letter-spacing: .04em; line-height: 1.2;
+  padding: 8px 12px; border-radius: 8px; white-space: nowrap;
+  max-width: 62vw; overflow: hidden; text-overflow: ellipsis;
+  opacity: 0; pointer-events: none;
+  transition: opacity .12s, transform .12s;
+}
+.snav-tip::before {
+  content: ""; position: absolute; bottom: 100%; right: 9px;
+  border: 4px solid transparent; border-bottom-color: rgba(30,28,24,.94);
+}
+.snav-social a::after { content: ""; position: absolute; inset: -9px; }
+.snav-social a:hover .snav-tip,
+.snav-social a.show .snav-tip { opacity: 1; transform: translateY(0); }
+
+.shead { max-width: var(--maxw); margin: 0 auto; padding: 90px 48px 70px; }
+.shead h1 { font-size: clamp(28px, 4vw, 44px); font-weight: 500; letter-spacing: .16em; }
+.shead p { margin-top: 16px; font-size: 13px; color: var(--ink-faint); letter-spacing: .12em; }
+
+.sbody { max-width: var(--maxw); margin: 0 auto; padding: 0 48px 160px; }
+
+/* 图墙：按比例铺排 —— 同一行的照片等高，宽度按照片自己的比例分
+   （宽幅全景占很宽，竖图占很窄），像一本排好的画册。
+   实现：每行是 flex，每张的 flex-grow = 自己的宽高比 →
+   宽度按比例瓜分整行，高度自然就一致了（不用 JS 算像素）。
+   分行由 series.js 按目标高度决定。
+   （不用 CSS Grid：grid 的 span 分配不紧凑，竖图旁的空档塞不进矮图） */
+.sgrid { display: block; }
+/* ★ 第一版分行要等所有缩略图的真实比例读出来（否则会先按 3:2 排一次再重排 → 页面"抽一下"）。
+   等待期间整块透明，排好由 JS 加 .ready 淡出来 —— 看到的就是直接到位，没有跳变。 */
+.sgrid { opacity: 0; transition: opacity .3s ease; }
+.sgrid.ready { opacity: 1; }
+.srow { display: flex; gap: 24px; margin-bottom: 24px; }
+.srow:last-child { margin-bottom: 0; }
+.sitem {
+  position: relative;
+  flex-grow: 1;               /* 真实值由 JS 写成「宽高比」 */
+  flex-shrink: 1;
+  flex-basis: 0;
+  min-width: 0;
+  border-radius: 6px; overflow: hidden;
+  background: var(--card);
+  cursor: pointer;
+  aspect-ratio: var(--ar, 3 / 2);   /* 由 JS 按缩略图真实比例写入，缺省退回 3:2 */
+}
+.sitem img {
+  width: 100%; height: 100%; object-fit: cover;
+  transition: transform .7s ease, filter .7s ease;
+}
+.sitem:hover img { transform: scale(1.03); filter: brightness(1.05); }
+
+@media (max-width: 820px) {
+  .snav { padding: 18px 22px; }
+  .shead { padding: 50px 22px 40px; }
+  .sbody { padding: 0 22px 90px; }
+  .srow { gap: 14px; margin-bottom: 14px; }
+}
+
+/* ---------- 入场动效 ---------- */
+.reveal { opacity: 0; transform: translateY(36px); transition: opacity 1.4s ease .25s, transform 1.4s ease .25s; }
+.reveal.visible { opacity: 1; transform: none; }
+/* ★ 从详情页返回首页时**不要重播**这段淡入 ——
+   刚看过的内容又淡进来一遍很影响体验（用户 2026-09-29 提的）。
+   <head> 里那段小脚本判断"是不是返回/后退"，是就给 html 加上 .no-anim。 */
+.no-anim .reveal { opacity: 1; transform: none; transition: none; }
+
+/* ---------- 移动端 ---------- */
+/* 窄一点：搜索框缩窄，但不隐藏 */
+@media (max-width: 940px) {
+  .nav-search { width: min(250px, 32vw); padding-left: 14px; }
+  .nav-search input { font-size: 12px; }
+}
+/* 更窄：搜索框换到导航栏的第二行，占满宽度 —— 任何屏幕都看得到 */
+@media (max-width: 620px) {
+  .nav { flex-wrap: wrap; row-gap: 12px; }
+  .nav-search { position: static; transform: none; order: 3; width: 100%; }
+  .nav-search input { font-size: 13px; }
+}
+@media (max-width: 820px) {
+  .nav { padding: 20px 22px; }
+  main { padding: 0 22px; }
+  .index-section { grid-template-columns: 1fr; gap: 40px; padding: 150px 0 90px; }
+  /* 手机端不再单独给展示框定 min-height —— 框统一按 3:2 跟着宽度走（320px 宽 → 213 高），
+     加 min-height 会把这个盒子的最小宽度顶大、窄屏就横向溢出了（见上面 .index-preview 的注释） */
+  .hero-text h1 { letter-spacing: .18em; }
+}
+
+/* ---------- 空数据占位（照片还没进来时） ---------- */
+/* 首屏没有轮播图：换暗房调的深色渐变。
+   不能用浅色 —— 导航图标、站名文字全是白色系，压浅底会集体隐形 */
+.hero-empty { background: linear-gradient(160deg, #3A362F 0%, #2C2A25 55%, #211E19 100%); }
+.hero-empty::after {
+  content: "照片整理中";
+  position: absolute; left: 50%; bottom: 22%;
+  transform: translateX(-50%);
+  font-size: 12px; letter-spacing: .4em; text-indent: .4em;
+  color: rgba(255, 255, 255, .55);
+  pointer-events: none;
+  z-index: 2;
+}
+/* 档案区没有任何系列卡片时的一行占位 */
+.archive-empty {
+  grid-column: 1 / -1;
+  padding: 110px 0 70px;
+  text-align: center;
+  font-size: 12px; letter-spacing: .3em; text-indent: .3em;
+  color: var(--ink-faint);
+}
+
+/* ---------- 署名（只给「有 credit 的」作品显示，即朋友的投稿） ---------- */
+/* 缩略图右下角：压在半透明照片上，透明度 50% */
+.credit {
+  position: absolute; right: 11px; bottom: 9px;
+  font-size: 11px; letter-spacing: .1em;
+  color: #fff;
+  opacity: .5;
+  text-shadow: 0 1px 5px rgba(0,0,0,.6);
+  pointer-events: none;        /* 别挡住缩略图的点击 */
+  z-index: 2;
+}
+/* 灯箱里的署名不用单独一行 —— 直接接在器材后面（见 renderLb） */

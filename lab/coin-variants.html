@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>拾遗 · 金币小人 · 三张定版工作台</title>
+<style>
+:root{
+  --bg:#faf8f4; --ink:#2c2c2a; --ink-soft:#6b675f; --line:#d8d5cc; --card:#efede6; --accent:#8a6d4a;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  background:var(--bg);color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  padding:40px 32px 80px;
+}
+header{max-width:1180px;margin:0 auto 22px}
+h1{font-size:16px;font-weight:500;letter-spacing:.16em}
+.sub{margin-top:9px;font-size:12.5px;line-height:1.95;color:var(--ink-soft)}
+.sub b{color:var(--ink);font-weight:500}
+.sub .park{color:#a8a49b}
+
+.bar{
+  max-width:1180px;margin:0 auto 30px;padding:18px 22px 20px;
+  background:#fff;border:1px solid var(--line);border-radius:12px;
+  display:flex;flex-wrap:wrap;gap:20px 32px;align-items:flex-end;
+}
+.grp{display:flex;flex-direction:column;gap:9px}
+.gl{font-size:11px;letter-spacing:.12em;color:var(--ink-soft)}
+.grow{display:flex;align-items:center;gap:10px;height:26px}
+.grow label{font-size:11.5px;letter-spacing:.07em;color:var(--ink);font-variant-numeric:tabular-nums;min-width:42px}
+input[type=range]{
+  -webkit-appearance:none;appearance:none;width:150px;height:2px;
+  background:var(--line);border-radius:2px;outline:none;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--ink);cursor:pointer;border:none;
+}
+input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:var(--ink);cursor:pointer;border:none}
+
+.sw{display:flex;gap:8px;align-items:center;height:26px}
+.sw button{
+  width:26px;height:26px;border-radius:50%;cursor:pointer;padding:0;
+  border:1px solid rgba(0,0,0,.07);flex:none;font-family:inherit;
+}
+.sw button.pill{width:auto;padding:0 12px;border-radius:14px;background:#fff;height:26px;
+  font-size:11px;letter-spacing:.08em;color:var(--ink-soft)}
+.sw button.on{box-shadow:0 0 0 2px #fff,0 0 0 3.5px var(--ink)}
+
+.tog{display:flex;align-items:center;gap:9px;cursor:pointer;height:26px;
+  font-size:11.5px;letter-spacing:.07em;color:var(--ink-soft)}
+.tog input{display:none}
+.tog i{width:34px;height:19px;border-radius:10px;background:var(--line);position:relative;transition:background .25s;flex:none}
+.tog i:after{content:"";position:absolute;top:2px;left:2px;width:15px;height:15px;border-radius:50%;background:#fff;transition:transform .25s}
+.tog input:checked + i{background:var(--accent)}
+.tog input:checked + i:after{transform:translateX(15px)}
+
+.sec{max-width:1180px;margin:0 auto 16px;font-size:12.5px;font-weight:500;letter-spacing:.14em;
+  padding-top:24px;border-top:1px solid var(--line)}
+.sec:first-of-type{border-top:none;padding-top:0}
+.sec span{font-weight:400;letter-spacing:.04em;color:var(--ink-soft);margin-left:8px;font-size:11.5px}
+
+.grid{
+  max-width:1180px;margin:0 auto 8px;
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:22px;
+}
+.card{background:var(--card);border-radius:14px;overflow:hidden;border:1px solid rgba(0,0,0,.04)}
+.cv{aspect-ratio:1/1;position:relative}
+.cv canvas{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:grab;touch-action:none}
+.cv canvas:active{cursor:grabbing}
+figcaption{padding:14px 16px 16px;background:#fff;border-top:1px solid var(--line)}
+figcaption b{display:flex;gap:9px;align-items:baseline;font-size:13px;font-weight:500;letter-spacing:.08em}
+figcaption b .no{font-size:11px;letter-spacing:0;color:var(--accent);flex:none}
+figcaption span{display:block;margin-top:6px;font-size:11.5px;line-height:1.7;color:var(--ink-soft)}
+figcaption em{display:block;margin-top:7px;font-size:11px;line-height:1.6;font-style:normal;color:var(--accent)}
+.tag{display:inline-block;margin-top:8px;font-size:10.5px;letter-spacing:.12em;color:var(--ink-soft);
+  border:1px solid var(--line);border-radius:10px;padding:2px 9px}
+
+.facewrap{max-width:1180px;margin:0 auto;display:flex;gap:30px;align-items:flex-start;flex-wrap:wrap}
+.cvface{width:min(440px,100%);aspect-ratio:1/1;background:var(--card);border-radius:14px;
+  position:relative;border:1px solid rgba(0,0,0,.04);overflow:hidden}
+.cvface canvas{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:grab;touch-action:none}
+.cvface canvas:active{cursor:grabbing}
+.fpanel{flex:1;min-width:250px}
+.fbtns{display:flex;flex-wrap:wrap;gap:8px}
+.fbtns button{
+  padding:9px 17px;border:1px solid var(--line);background:#fff;border-radius:20px;
+  font-size:12px;letter-spacing:.08em;color:var(--ink-soft);cursor:pointer;font-family:inherit;transition:.2s;
+}
+.fbtns button:hover{background:var(--card)}
+.fbtns button.on{background:var(--ink);border-color:var(--ink);color:#fff}
+.fnote{margin-top:20px;font-size:11.5px;line-height:1.85;color:var(--ink-soft)}
+.fnote b{color:var(--ink);font-weight:500}
+
+.tips{max-width:1180px;margin:32px auto 0;font-size:11.5px;line-height:1.95;color:#a8a49b}
+.tips b{color:var(--ink-soft);font-weight:500}
+.tips .hi{color:var(--accent)}
+@media(max-width:820px){
+  body{padding:26px 16px 60px}
+  .bar{gap:16px 22px;padding:16px}
+  input[type=range]{width:110px}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>金币小人 · 收窄到三张</h1>
+  <div class="sub">
+    参数不变：<b>厚度 0.140 · 倒角 0.070 · 无手脚</b>。这一版只留下你点名的三张，表情台也改成用这三种币身来配。<br>
+    <span class="park">已撤下（代码留着，叫一声就回来）：原案·圆球五官、极简点弧、齿环、双色内盘、真外圈齿边。</span>
+  </div>
+</header>
+
+<div class="bar">
+  <div class="grp"><span class="gl">浮雕高度</span><div class="grow"><input type="range" id="relief" min="0.008" max="0.050" step="0.002" value="0.030"><label id="vRelief">0.030</label></div></div>
+  <div class="grp"><span class="gl">五官大小</span><div class="grow"><input type="range" id="feat" min="0.55" max="1.30" step="0.05" value="0.85"><label id="vFeat">0.85</label></div></div>
+  <div class="grp"><span class="gl">磨砂度</span><div class="grow"><input type="range" id="rough" min="0.30" max="1.00" step="0.01" value="0.96"><label id="vRough">0.96</label></div></div>
+  <div class="grp"><span class="gl">统一视角</span><div class="grow"><input type="range" id="yaw" min="-85" max="85" step="1" value="-36"></div></div>
+  <div class="grp"><span class="gl">币身色</span><div class="sw" id="swBody"></div></div>
+  <div class="grp"><span class="gl">五官色</span><div class="sw" id="swFeat"></div></div>
+  <div class="grp"><span class="gl">脸盘色</span><div class="sw" id="swFace"></div></div>
+  <div class="grp"><span class="gl">腮红（表情台）</span><div class="grow"><label class="tog"><input type="checkbox" id="blush" checked><i></i><span>开</span></label></div></div>
+  <div class="grp"><span class="gl">脸盘大小</span><div class="grow"><input type="range" id="plateScale" min="0.60" max="1.15" step="0.01" value="0.88"><label id="vPlate">0.88</label></div></div>
+  <div class="grp"><span class="gl">眼距</span><div class="grow"><input type="range" id="spread" min="0.70" max="1.40" step="0.02" value="0.88"><label id="vSpread">0.88</label></div></div>
+  <div class="grp"><span class="gl">眼睛大小</span><div class="grow"><input type="range" id="eyeSize" min="0.70" max="1.40" step="0.02" value="1.15"><label id="vEye">1.15</label></div></div>
+</div>
+
+<h2 class="sec">一 · 留下的三张<span>以后直接说名字就行，编号只是位置</span></h2>
+<div class="grid" id="gridCards"></div>
+
+<h2 class="sec">二 · 表情台<span>五个表情 · 三种币身都能配着看</span></h2>
+<div class="facewrap">
+  <div class="cvface"><canvas id="faceC"></canvas></div>
+  <div class="fpanel">
+    <div class="gl">表情</div>
+    <div class="fbtns" id="exprBtns"></div>
+    <div class="gl" style="margin-top:20px">币身</div>
+    <div class="fbtns" id="carrierBtns"></div>
+    <div class="fnote">
+      五个表情：<b>微笑</b>（默认）·<b>眨眼</b>·<b>困困</b>（闭眼 + 小圆嘴）·<b>惊讶</b>·<b>傲娇</b>（半眯横线眼 + 一字嘴）。<br>
+      表情只是<b>换几何</b>，不生成新贴图，所以装进网站几乎不增加体积 —— 你 200 张照片的体量也无所谓。
+    </div>
+  </div>
+</div>
+
+<div class="tips">
+  <b>怎么用：</b>每张都能单独拖着转，<b>拖到侧面看厚度轮廓</b>，正面看脸。「统一视角」让三张一起转。<br>
+  <b>磨砂度</b>这一个滑块带动全套：币身 0.96，<b>浮雕面永远比它亮 0.34</b>，脸盘亮 0.06，刻线亮 0.06。
+  这个差值不能取消 ——「同色也能读出凸起」全靠它，所以滑块是整体平移。往上更哑光，往下更亮面。<br>
+  <b>五官色</b>选「奶白」= 把奶白脸的颜色搬到五官上、不要脸盘；<b>撞色自动处理</b>：五官色与脸盘色相同时自动换深可可，卡片下方会提示。<br>
+  <b>脸的比例</b>（控制栏最右三个）：<b>脸盘大小</b>只影响 ① 那张（另两张没脸盘）；<b>眼距</b>是左右分开的程度；<b>眼睛大小</b>只管眼睛，嘴和腮红不动。<br>
+  <b>想锁定一组发我：</b>地址栏加参数，例如 <span class="hi">?body=F3C0CB&amp;fc=4A4440&amp;rel=0.030&amp;rough=0.96&amp;ex=1&amp;car=2&amp;ps=0.9&amp;esp=1.1&amp;es=1.15</span>
+  —— <b>body</b> 币身色、<b>fc</b> 五官色、<b>pc</b> 脸盘色（填 <b>same</b> 表示同色）、<b>rel</b> 浮雕高度、<b>fs</b> 五官大小、<b>rough</b> 磨砂度、<b>ps</b> 脸盘大小、<b>esp</b> 眼距、<b>es</b> 眼睛大小、<b>blush=0</b> 关腮红、<b>yaw</b> 视角、<b>ex</b> 表情序号（0–4）、<b>car</b> 币身（0 有脸盘 / 1 细圈 / 2 珠圈）。
+</div>
+
+<script src="../lib/three.min.js"></script>
+<script>
+(function(){
+"use strict";
+
+if (typeof THREE === "undefined") {
+  document.getElementById("gridCards").innerHTML = "<p style='font-size:13px'>three.js 未加载</p>";
+  return;
+}
+
+/* ================= 定稿参数 ================= */
+var T = 0.140, B = 0.070;
+var CAPZ = T / 2 + B;          // 正面平面 z
+var EMBED = 0.012, FB = 0.005;
+
+/* 曾经做过、暂时撤下的齿边用得上（齿环 / 真外圈齿边）：
+   齿要长在真外圈时，0.070 的倒角会把 0.026 深的齿磨平，必须换成 BV2 并把挤出厚度补回来 */
+var BV2 = 0.008, TEETH = 90, TOOTH = 0.026;
+var T2 = T + 2 * (B - BV2);    // = 0.264，加两侧 BV2 仍是 0.280，正面平面仍在 CAPZ
+
+/* ================= 调色板 ================= */
+var MACARON = ["#A8D5C8","#F3C0CB","#F2DFA0","#C6B6E3","#A9C9E8","#F5C4A8"];
+var FEATS = [
+  { n: "同色",  c: null },
+  { n: "奶白",  c: "#FBF6EC" },
+  { n: "深可可", c: "#4A4440" },
+  { n: "蜜桃",  c: "#F5C4A8" },
+  { n: "樱花",  c: "#F3C0CB" }
+];
+var FACES = [
+  { n: "奶白",  c: "#FBF6EC" },
+  { n: "同币身", c: null }
+];
+var FALLBACK = "#4A4440";
+var BLUSH_C  = "#F2A8B0";
+
+var bodyColor = MACARON[0];
+var featSel = 2, faceSel = 0, blushOn = true;   // 五官默认「深可可」：三张币身都读得清
+var relief = 0.030, feat = 0.85, rough = 0.96;
+var eyeScale = 1.15, eyeSpread = 0.88, plateScale = 0.88;   // 脸的比例三件套（当前默认=比较像样的一版）
+var exprSel = 0, carrierSel = 0;
+
+/* ================= 网址参数 ================= */
+(function () {
+  var q;
+  try { q = new URLSearchParams(location.search); } catch (_) { return; }
+
+  function pickColor(k) {
+    if (!q.has(k)) return undefined;
+    var v = q.get(k);
+    if (v === "same") return null;
+    var c = "#" + v.replace("#", "");
+    return /^#[0-9a-fA-F]{6}$/.test(c) ? c.toUpperCase() : undefined;
+  }
+  function num(k, min, max) {
+    if (!q.has(k)) return null;
+    var v = parseFloat(q.get(k));
+    return isNaN(v) ? null : Math.max(min, Math.min(max, v));
+  }
+  function findOrPush(list, hex) {
+    var i = -1;
+    list.forEach(function (o, k) { if (o.c && o.c.toUpperCase() === hex) i = k; });
+    if (i < 0) { list.push({ n: hex, c: hex }); i = list.length - 1; }
+    return i;
+  }
+
+  var b = pickColor("body"); if (typeof b === "string") bodyColor = b;
+  var f = pickColor("fc");
+  if (f === null) featSel = 0; else if (typeof f === "string") featSel = findOrPush(FEATS, f);
+  var p = pickColor("pc");
+  if (p === null) faceSel = 1; else if (typeof p === "string") faceSel = findOrPush(FACES, p);
+
+  var r = num("rel", 0.008, 0.050); if (r !== null) relief = r;
+  var s = num("fs", 0.55, 1.30);    if (s !== null) feat = s;
+  var rg = num("rough", 0.30, 1.00); if (rg !== null) rough = rg;
+  var es = num("es", 0.70, 1.40);   if (es !== null) eyeScale = es;
+  var ep = num("esp", 0.70, 1.40);  if (ep !== null) eyeSpread = ep;
+  var ps = num("ps", 0.60, 1.15);   if (ps !== null) plateScale = ps;
+  if (q.has("yaw")) {
+    var y = num("yaw", -85, 85);
+    if (y !== null) document.getElementById("yaw").value = y;
+  }
+  if (q.has("blush")) blushOn = q.get("blush") !== "0";
+  if (q.has("ex"))  { var e = parseInt(q.get("ex"), 10); if (!isNaN(e) && e >= 0) exprSel = e; }
+  if (q.has("car")) { var c2 = parseInt(q.get("car"), 10); if (!isNaN(c2) && c2 >= 0 && c2 <= 2) carrierSel = c2; }
+})();
+
+/* ================= 颜色工具 ================= */
+function col(c){ return c instanceof THREE.Color ? c : new THREE.Color(c); }
+function shade(c, k){ var x = col(c).clone(); x.multiplyScalar(k); return x; }
+function key(c){ return col(c).getHexString().toUpperCase(); }
+function same(a, b){ return key(a) === key(b); }
+function featName(){ return FEATS[featSel].n; }
+function rawFeatColor(){ return featSel === 0 ? bodyColor : FEATS[featSel].c; }
+function faceColor(){ return faceSel === 0 ? FACES[0].c : bodyColor; }
+function featColorFor(hasPlate){
+  var c = rawFeatColor();
+  if (hasPlate && same(c, faceColor())) c = FALLBACK;
+  return c;
+}
+function collisionNote(hasPlate){
+  if (!hasPlate) return "";
+  return same(rawFeatColor(), faceColor()) ? "五官色与脸盘撞色，已自动换成深可可。" : "";
+}
+
+/* ================= 材质 ================= */
+/* 磨砂度：一个滑块带动全套。浮雕面永远比币身亮 0.34 —— 这是「同色也能读出凸起」的关键，所以只整体平移 */
+function cl(v, lo, hi){ return Math.max(lo, Math.min(hi, v)); }
+function R_body()  { return rough; }
+function R_relief(){ return cl(rough - 0.34, 0.18, 1); }
+function R_gloss() { return cl(rough - 0.44, 0.14, 1); }
+function R_plate() { return cl(rough - 0.06, 0.20, 1); }
+function R_line()  { return cl(rough - 0.06, 0.20, 1); }
+
+function matte(c)   { return new THREE.MeshStandardMaterial({ color: col(c), roughness: R_body(), metalness: 0.03 }); }
+function reliefMat(c){ return new THREE.MeshStandardMaterial({ color: col(c), roughness: R_relief(), metalness: 0.05 }); }
+function glossMat(c){ return new THREE.MeshStandardMaterial({ color: col(c), roughness: R_gloss(), metalness: 0.05 }); }
+function plateMat(c){ return new THREE.MeshStandardMaterial({ color: col(c), roughness: R_plate(), metalness: 0.02 }); }
+function lineMat(c) { return new THREE.MeshStandardMaterial({ color: col(c), roughness: R_line(), metalness: 0.03 }); }
+function blushMat() { return new THREE.MeshStandardMaterial({
+  color: new THREE.Color(BLUSH_C), roughness: 0.9, metalness: 0, transparent: true, opacity: 0.55 }); }
+
+/* ================= 几何工具 ================= */
+/* 建整圆时绝对不要用 absarc(0,0,r,0,Math.PI*2)：首尾点重合会生成一条退化边，
+   倒角时被放大成一条明显的裂缝（就在 3 点钟方向）。改成逐段 lineTo，且不重复首点。 */
+function circleOn(path, r, segs) {
+  var n = segs || 96;
+  for (var i = 0; i < n; i++) {
+    var a = i / n * Math.PI * 2;
+    var x = Math.cos(a) * r, y = Math.sin(a) * r;
+    if (i === 0) path.moveTo(x, y); else path.lineTo(x, y);
+  }
+  path.closePath();
+  return path;
+}
+function disc(radius, depth, bevel, segs) {
+  var s = circleOn(new THREE.Shape(), radius, segs || 96);
+  var g = new THREE.ExtrudeGeometry(s, {
+    depth: depth, curveSegments: 4, steps: 1,
+    bevelEnabled: bevel > 0, bevelThickness: bevel, bevelSize: bevel, bevelSegments: 4
+  });
+  g.center();
+  return g;
+}
+function ellipse(rx, ry, depth, bevel) {
+  var g = disc(rx, depth, bevel, 96);
+  g.scale(1, ry / rx, 1);
+  return g;
+}
+function ringGeo(rOut, rIn, depth, bevel, segs) {
+  var s = circleOn(new THREE.Shape(), rOut, segs || 96);
+  var h = circleOn(new THREE.Path(), rIn, segs || 96);
+  s.holes.push(h);
+  var g = new THREE.ExtrudeGeometry(s, {
+    depth: depth, curveSegments: 4, steps: 1,
+    bevelEnabled: bevel > 0, bevelThickness: bevel, bevelSize: bevel, bevelSegments: 4
+  });
+  g.center();
+  return g;
+}
+function arcBar(rOut, rIn, a0, a1, depth, bevel) {
+  var s = new THREE.Shape();
+  s.absarc(0, 0, rOut, a0, a1, false);
+  s.absarc(0, 0, rIn, a1, a0, true);
+  var g = new THREE.ExtrudeGeometry(s, {
+    depth: depth, curveSegments: 40, steps: 1,
+    bevelEnabled: bevel > 0, bevelThickness: bevel, bevelSize: bevel, bevelSegments: 4
+  });
+  g.center();
+  return g;
+}
+/* 圆角矩形：横线眼 / 一字嘴 */
+function rrectShape(w, h, r) {
+  var s = new THREE.Shape(), x = -w / 2, y = -h / 2;
+  r = Math.min(r, w / 2, h / 2);
+  s.moveTo(x + r, y);
+  s.lineTo(x + w - r, y); s.quadraticCurveTo(x + w, y, x + w, y + r);
+  s.lineTo(x + w, y + h - r); s.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  s.lineTo(x + r, y + h); s.quadraticCurveTo(x, y + h, x, y + h - r);
+  s.lineTo(x, y + r); s.quadraticCurveTo(x, y, x + r, y);
+  return s;
+}
+function barGeo(w, h, depth, bevel, r) {
+  var g = new THREE.ExtrudeGeometry(rrectShape(w, h, r === undefined ? h * 0.45 : r), {
+    depth: depth, curveSegments: 8, steps: 1,
+    bevelEnabled: bevel > 0, bevelThickness: bevel, bevelSize: bevel, bevelSegments: 4
+  });
+  g.center();
+  return g;
+}
+/* 填充的锯齿圆盘：撤下的「齿环 / 真外圈齿边」用它。当装饰环时用 relieve 抬高即可 */
+function reededRing(rOut, rIn, teeth, depth, bevel) {
+  var s = new THREE.Shape();
+  var n = teeth * 2;
+  for (var i = 0; i < n; i++) {
+    var a = i / n * Math.PI * 2;
+    var r = (i % 2 === 0) ? rOut : rIn;
+    var x = Math.cos(a) * r, y = Math.sin(a) * r;
+    if (i === 0) s.moveTo(x, y); else s.lineTo(x, y);
+  }
+  s.closePath();
+  var g = new THREE.ExtrudeGeometry(s, {
+    depth: depth, curveSegments: 2, steps: 1,
+    bevelEnabled: bevel > 0, bevelThickness: bevel, bevelSize: bevel, bevelSegments: 3
+  });
+  g.center();
+  return g;
+}
+var SMILE0 = Math.PI * 1.14, SMILE1 = Math.PI * 1.86;   // 下弧 → 微笑
+var FROWN0 = Math.PI * 0.14, FROWN1 = Math.PI * 0.86;   // 上弧 → 撇嘴
+
+function add(g, geo, material, x, y, z) {
+  var m = new THREE.Mesh(geo, material);
+  m.position.set(x || 0, y || 0, z || 0);
+  g.add(m);
+  return m;
+}
+function relieve(g, makeGeo, material, x, y, baseZ, proud, bevel) {
+  var bv = bevel === undefined ? FB : bevel;
+  var d = Math.max(0.01, (proud + EMBED - bv) * 2);
+  var m = new THREE.Mesh(makeGeo(d, bv), material);
+  m.position.set(x || 0, y || 0, baseZ - (d / 2 + bv) + proud);
+  g.add(m);
+  return m;
+}
+
+/* ================= 五官基准 / 脸盘 ================= */
+var EYE_RX = 0.075, EYE_RY = 0.086;
+var MOU_RO = 0.100, MOU_RI = 0.082;
+var PLATE_R = 0.70, PLATE_D = 0.05, PLATE_B = 0.014;
+var PLATE_Z   = CAPZ - 0.02 + (PLATE_D / 2 + PLATE_B);
+var PLATE_TOP = PLATE_Z + PLATE_D / 2 + PLATE_B;
+
+function coinBody(g, base) { add(g, disc(1, T, B), matte(base), 0, 0, 0); }
+function plate(g) {
+  add(g, disc(PLATE_R * plateScale, PLATE_D, PLATE_B, 96), plateMat(faceColor()), 0, 0, PLATE_Z);
+  return PLATE_TOP;
+}
+/* 两道细圈：始终币身色（那是币的结构，不是五官） */
+function ringDeco(g, base) {
+  var rb = reliefMat(base);
+  relieve(g, function (d, bv) { return ringGeo(0.905, 0.882, d, bv, 96); }, rb, 0, 0, CAPZ, relief * 0.5);
+  relieve(g, function (d, bv) { return ringGeo(0.712, 0.691, d, bv, 96); }, rb, 0, 0, CAPZ, relief * 0.42);
+}
+/* 一圈 60 颗小圆珠，同样保持币身色 */
+function beadDeco(g, base) {
+  var bm = reliefMat(base), n = 60, rr = 0.884;
+  for (var i = 0; i < n; i++) {
+    var a = i / n * Math.PI * 2;
+    var s = new THREE.Mesh(new THREE.SphereGeometry(0.0215, 12, 10), bm);
+    s.position.set(Math.cos(a) * rr, Math.sin(a) * rr, CAPZ + 0.0065);
+    g.add(s);
+  }
+}
+function blushDots(g, z, hasPlate) {
+  if (!blushOn) return;
+  var bm = blushMat();
+  var wide = hasPlate ? plateScale : 1;
+  [-0.405, 0.405].forEach(function (x) {
+    var b = new THREE.Mesh(new THREE.CircleGeometry(0.072 * feat, 28), bm);
+    b.position.set(x * feat * wide, -0.045 * feat, z + 0.002);
+    g.add(b);
+  });
+}
+
+/* ================= 三种币身（载体） ================= */
+var CARRIERS = [
+  { n: "有脸盘", mode: 0 },
+  { n: "细圈",   mode: 1 },
+  { n: "珠圈",   mode: 2 }
+];
+/* 铺好币身与装饰，返回"脸"所在的平面 z */
+function carrier(g, base, mode) {
+  coinBody(g, base);
+  if (mode === 0) return plate(g);
+  if (mode === 1) { ringDeco(g, base); return CAPZ; }
+  if (mode === 2) { beadDeco(g, base); return CAPZ; }
+  return CAPZ;
+}
+
+/* ================= 五官绘制原子 ================= */
+function eyeDot(g, fm, x, y, z, k, proud) {
+  k = k === undefined ? 1 : k;
+  var sc = feat * eyeScale * k;
+  return relieve(g, function (d, bv) { return ellipse(EYE_RX * sc, EYE_RY * sc, d, bv); },
+                 fm, x, y, z, proud === undefined ? relief : proud);
+}
+function featBar(g, fm, x, y, z, w, h, rot, proud) {
+  var m = relieve(g, function (d, bv) { return barGeo(w * feat, h * feat, d, bv, h * feat * 0.45); },
+                  fm, x, y, z, proud === undefined ? relief : proud);
+  if (rot) m.rotation.z = rot;
+  return m;
+}
+function featArc(g, fm, x, y, z, rO, rI, a0, a1, proud) {
+  return relieve(g, function (d, bv) { return arcBar(rO * feat, rI * feat, a0, a1, d, bv); },
+                 fm, x, y, z, proud === undefined ? relief : proud);
+}
+function featDisc(g, fm, x, y, z, r, proud) {
+  return relieve(g, function (d, bv) { return disc(r * feat, d, bv, 32); },
+                 fm, x, y, z, proud === undefined ? relief : proud);
+}
+
+/* ================= 表情 ================= */
+var EXPRS = [
+  { n: "微笑", eyes: "dot",   mouth: "smile" },
+  { n: "眨眼", eyes: "wink",  mouth: "smile" },
+  { n: "困困", eyes: "sleep", mouth: "o" },
+  { n: "惊讶", eyes: "round", mouth: "oh" },
+  { n: "傲娇", eyes: "line",  mouth: "flat" }
+];
+
+/* mode: 0 有脸盘 / 1 细圈 / 2 珠圈；opt.k 五官缩放、opt.rk 浮雕高度缩放 */
+function drawFace(g, base, mode, spec, opt) {
+  opt = opt || {};
+  var k = opt.k || 1, rk = opt.rk || 1;
+  var z = carrier(g, base, mode);
+  var hasPlate = (mode === 0);
+  var fm = reliefMat(featColorFor(hasPlate));
+  var pr = relief * rk;
+  var ex = (hasPlate ? 0.205 : 0.218) * feat * k * eyeSpread;
+  var ey = (hasPlate ? 0.115 : 0.118) * feat * k;
+
+  switch (spec.eyes) {
+    case "dot":
+      [-ex, ex].forEach(function (x) { eyeDot(g, fm, x, ey, z, 1, pr); });
+      break;
+    case "wink":
+      eyeDot(g, fm, -ex, ey, z, 1, pr);
+      featBar(g, fm, ex, ey, z, 0.098, 0.026, 0, pr);
+      break;
+    case "sleep":
+      [-ex, ex].forEach(function (x) { featArc(g, fm, x, ey, z, 0.048, 0.025, SMILE0, SMILE1, pr); });
+      break;
+    case "round":
+      [-ex, ex].forEach(function (x) { featDisc(g, fm, x, ey, z, 0.050, pr); });
+      break;
+    case "line":
+      [-ex, ex].forEach(function (x, i) { featBar(g, fm, x, ey, z, 0.094, 0.023, i === 0 ? -0.18 : 0.18, pr); });
+      break;
+  }
+  switch (spec.mouth) {
+    case "smile": featArc(g, fm, 0, -ey, z, MOU_RO, MOU_RI, SMILE0, SMILE1, pr * 0.92); break;
+    case "o":     featDisc(g, fm, 0, -ey * 0.92, z, 0.030, pr * 0.9); break;
+    case "oh":    featDisc(g, fm, 0, -ey * 0.92, z, 0.040, pr * 0.9); break;
+    case "flat":  featBar(g, fm, 0, -ey * 0.94, z, 0.098, 0.024, 0, pr); break;
+    case "arc":   featArc(g, fm, 0, -ey, z, 0.082, 0.068, SMILE0, SMILE1, pr * 0.9); break;
+    case "frown": featArc(g, fm, 0, -ey * 1.1, z, 0.082, 0.068, FROWN0, FROWN1, pr * 0.9); break;
+  }
+  blushDots(g, z, hasPlate);
+}
+
+/* ================= 三张定版卡 ================= */
+var CARDS = [
+  {
+    no: "①", tag: "有脸盘",
+    name: "奶白脸盘 + 平顶浮雕",
+    txt: "脸盘留着，五官用平顶陡台阶（不是圆球）。既有脸的轮廓，又不像贴纸 —— 圆球那版已撤下。",
+    build: function (g, base) { drawFace(g, base, 0, EXPRS[0]); },
+    extra: function () {
+      return "脸盘：" + FACES[faceSel].n + " · 五官色：" + featName() +
+             (collisionNote(true) ? " · " + collisionNote(true) : "");
+    }
+  },
+  {
+    no: "②", tag: "无脸盘",
+    name: "同心细圈",
+    txt: "两道极细同心圈保持币身色，中央是一版缩小过的五官。纪念币的仪式感。",
+    build: function (g, base) { drawFace(g, base, 1, EXPRS[0], { k: 0.88, rk: 0.85 }); },
+    extra: function () { return "五官色：" + featName() + " · 细圈始终为币身色"; }
+  },
+  {
+    no: "③", tag: "无脸盘",
+    name: "珠圈币",
+    txt: "外圈排一圈 60 颗小圆珠（真银币常见的珠圈），中央是平顶浮雕五官。",
+    build: function (g, base) { drawFace(g, base, 2, EXPRS[0]); },
+    extra: function () { return "五官色：" + featName() + " · 珠圈保持币身色"; }
+  }
+];
+
+/* ================= 渲染器 / 场景 ================= */
+function mkRenderer(canvas) {
+  var r = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
+  r.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  r.setClearAlpha(0);
+  if ("outputColorSpace" in r && THREE.SRGBColorSpace) r.outputColorSpace = THREE.SRGBColorSpace;
+  else if (THREE.sRGBEncoding !== undefined) r.outputEncoding = THREE.sRGBEncoding;
+  return r;
+}
+function mkScene() {
+  var s = new THREE.Scene();
+  /* 半球光的「地面色」原来偏灰（0xd6cfc1），会把马卡龙色压成灰绿；
+     换成接近白的暖灰并把强度提一点，颜色才亮得起来 */
+  s.add(new THREE.HemisphereLight(0xffffff, 0xeeeae2, 1.18));
+  var k = new THREE.DirectionalLight(0xffffff, 1.8);   k.position.set(4.6, 3.2, 4.2);  s.add(k);
+  var f = new THREE.DirectionalLight(0xf0e6d8, 0.5);   f.position.set(-5, -2, 4);      s.add(f);
+  var m = new THREE.DirectionalLight(0xffffff, 0.8);   m.position.set(-2.6, 1.6, -5);  s.add(m);
+  return s;
+}
+function mkCamera(z) {
+  var c = new THREE.PerspectiveCamera(32, 1, 0.1, 100);
+  c.position.set(0, 0, z || 6.0);
+  return c;
+}
+function clearGroup(g) {
+  while (g.children.length) {
+    var m = g.children.pop();
+    if (m.geometry) m.geometry.dispose();
+    if (m.material) m.material.dispose();
+  }
+}
+
+/* ================= 建卡片 ================= */
+var yawEl = document.getElementById("yaw");
+
+(function () {
+  var host = document.getElementById("gridCards");
+  CARDS.forEach(function (v) {
+    var card = document.createElement("figure");
+    card.className = "card";
+    var cvWrap = document.createElement("div");
+    cvWrap.className = "cv";
+    var canvas = document.createElement("canvas");
+    cvWrap.appendChild(canvas);
+    var cap = document.createElement("figcaption");
+    cap.innerHTML = "<b><span class='no'>" + v.no + "</span>" + v.name + "</b>" +
+                    "<span>" + v.txt + "</span><em></em><div class='tag'>" + v.tag + "</div>";
+    v.extraEl = cap.querySelector("em");
+    card.appendChild(cvWrap);
+    card.appendChild(cap);
+    host.appendChild(card);
+
+    v.canvas   = canvas;
+    v.renderer = mkRenderer(canvas);
+    v.scene    = mkScene();
+    v.camera   = mkCamera(6.0);
+    v.group    = new THREE.Group();
+    v.scene.add(v.group);
+    v.rotY     = parseFloat(yawEl.value) * Math.PI / 180;
+    v.group.rotation.set(0.12, v.rotY, 0);
+
+    var dragging = false, lx = 0;
+    canvas.addEventListener("pointerdown", function (e) {
+      dragging = true; lx = e.clientX;
+      try { canvas.setPointerCapture(e.pointerId); } catch (_) {}
+    });
+    canvas.addEventListener("pointermove", function (e) {
+      if (!dragging) return;
+      v.rotY += (e.clientX - lx) * 0.01;
+      v.group.rotation.y = v.rotY;
+      lx = e.clientX;
+      v.renderer.render(v.scene, v.camera);
+    });
+    function stop(e) { dragging = false; try { canvas.releasePointerCapture(e.pointerId); } catch (_) {} }
+    canvas.addEventListener("pointerup", stop);
+    canvas.addEventListener("pointercancel", stop);
+  });
+})();
+
+/* ================= 表情台 ================= */
+var faceC = document.getElementById("faceC");
+var fR = mkRenderer(faceC), fS = mkScene(), fCam = mkCamera(4.7);
+var fGroup = new THREE.Group();
+fS.add(fGroup);
+fGroup.rotation.set(0.12, parseFloat(yawEl.value) * Math.PI / 180, 0);
+
+function buildFaceView() {
+  clearGroup(fGroup);
+  var spec = EXPRS[Math.min(exprSel, EXPRS.length - 1)];
+  var mode = CARRIERS[Math.min(carrierSel, CARRIERS.length - 1)].mode;
+  drawFace(fGroup, bodyColor, mode, spec);
+}
+
+function rebuildAll() {
+  CARDS.forEach(function (v) {
+    clearGroup(v.group);
+    v.build(v.group, bodyColor);
+    if (v.extraEl) v.extraEl.textContent = v.extra();
+  });
+  buildFaceView();
+  renderAll();
+}
+
+/* ================= 尺寸 / 渲染 ================= */
+function resize() {
+  CARDS.forEach(function (v) {
+    var w = v.canvas.clientWidth, h = v.canvas.clientHeight;
+    if (!w || !h) return;
+    v.renderer.setSize(w, h, false);
+    v.camera.aspect = w / h;
+    v.camera.updateProjectionMatrix();
+  });
+  var w2 = faceC.clientWidth, h2 = faceC.clientHeight;
+  if (w2 && h2) {
+    fR.setSize(w2, h2, false);
+    fCam.aspect = w2 / h2;
+    fCam.updateProjectionMatrix();
+  }
+}
+function renderAll() {
+  CARDS.forEach(function (v) { v.renderer.render(v.scene, v.camera); });
+  fR.render(fS, fCam);
+}
+
+/* ================= 控件 ================= */
+yawEl.addEventListener("input", function () {
+  var rad = parseFloat(yawEl.value) * Math.PI / 180;
+  CARDS.forEach(function (v) { v.rotY = rad; v.group.rotation.y = rad; });
+  fGroup.rotation.y = rad;
+  renderAll();
+});
+
+var rEl = document.getElementById("relief"), fEl = document.getElementById("feat"), roEl = document.getElementById("rough");
+rEl.addEventListener("input", function () {
+  relief = parseFloat(rEl.value);
+  document.getElementById("vRelief").textContent = relief.toFixed(3);
+  rebuildAll();
+});
+fEl.addEventListener("input", function () {
+  feat = parseFloat(fEl.value);
+  document.getElementById("vFeat").textContent = feat.toFixed(2);
+  rebuildAll();
+});
+roEl.addEventListener("input", function () {
+  rough = parseFloat(roEl.value);
+  document.getElementById("vRough").textContent = rough.toFixed(2);
+  rebuildAll();
+});
+
+/* 脸的比例三件套 */
+var plEl = document.getElementById("plateScale"),
+    spEl = document.getElementById("spread"),
+    egEl = document.getElementById("eyeSize");
+plEl.addEventListener("input", function () {
+  plateScale = parseFloat(plEl.value);
+  document.getElementById("vPlate").textContent = plateScale.toFixed(2);
+  rebuildAll();
+});
+spEl.addEventListener("input", function () {
+  eyeSpread = parseFloat(spEl.value);
+  document.getElementById("vSpread").textContent = eyeSpread.toFixed(2);
+  rebuildAll();
+});
+egEl.addEventListener("input", function () {
+  eyeScale = parseFloat(egEl.value);
+  document.getElementById("vEye").textContent = eyeScale.toFixed(2);
+  rebuildAll();
+});
+
+function buildSwatches(elId, list, getSel, setSel) {
+  var wrap = document.getElementById(elId);
+  list.forEach(function (o, i) {
+    var b = document.createElement("button");
+    var isPill = (o.c === null);
+    if (isPill) { b.className = "pill" + (getSel() === i ? " on" : ""); b.textContent = o.n; }
+    else { b.style.background = o.c; if (getSel() === i) b.className = "on"; }
+    b.title = o.n;
+    b.addEventListener("click", function () {
+      setSel(i);
+      Array.prototype.forEach.call(wrap.children, function (x) {
+        x.className = x.classList.contains("pill") ? "pill" : "";
+      });
+      b.className = b.classList.contains("pill") ? "pill on" : "on";
+      rebuildAll();
+    });
+    wrap.appendChild(b);
+  });
+}
+buildSwatches("swBody", MACARON.map(function (c) { return { n: c, c: c }; }),
+  function () { return MACARON.indexOf(bodyColor); },
+  function (i) { bodyColor = MACARON[i]; });
+buildSwatches("swFeat", FEATS, function () { return featSel; }, function (i) { featSel = i; });
+buildSwatches("swFace", FACES, function () { return faceSel; }, function (i) { faceSel = i; });
+
+document.getElementById("blush").addEventListener("change", function () {
+  blushOn = this.checked;
+  rebuildAll();
+});
+
+/* 表情按钮 */
+(function () {
+  var wrap = document.getElementById("exprBtns");
+  EXPRS.forEach(function (o, i) {
+    var b = document.createElement("button");
+    b.textContent = o.n;
+    if (i === exprSel) b.className = "on";
+    b.addEventListener("click", function () {
+      exprSel = i;
+      Array.prototype.forEach.call(wrap.children, function (x) { x.className = ""; });
+      b.className = "on";
+      buildFaceView();
+      renderAll();
+    });
+    wrap.appendChild(b);
+  });
+})();
+/* 币身按钮 */
+(function () {
+  var wrap = document.getElementById("carrierBtns");
+  CARRIERS.forEach(function (o, i) {
+    var b = document.createElement("button");
+    b.textContent = o.n;
+    if (i === carrierSel) b.className = "on";
+    b.addEventListener("click", function () {
+      carrierSel = i;
+      Array.prototype.forEach.call(wrap.children, function (x) { x.className = ""; });
+      b.className = "on";
+      buildFaceView();
+      renderAll();
+    });
+    wrap.appendChild(b);
+  });
+})();
+
+/* 表情台拖动旋转 */
+(function () {
+  var dragging = false, lx = 0;
+  faceC.addEventListener("pointerdown", function (e) {
+    dragging = true; lx = e.clientX;
+    try { faceC.setPointerCapture(e.pointerId); } catch (_) {}
+  });
+  faceC.addEventListener("pointermove", function (e) {
+    if (!dragging) return;
+    fGroup.rotation.y += (e.clientX - lx) * 0.01;
+    lx = e.clientX;
+    fR.render(fS, fCam);
+  });
+  function stop(e) { dragging = false; try { faceC.releasePointerCapture(e.pointerId); } catch (_) {} }
+  faceC.addEventListener("pointerup", stop);
+  faceC.addEventListener("pointercancel", stop);
+})();
+
+window.addEventListener("resize", function () { resize(); renderAll(); });
+
+rEl.value = relief; document.getElementById("vRelief").textContent = relief.toFixed(3);
+fEl.value = feat;   document.getElementById("vFeat").textContent   = feat.toFixed(2);
+roEl.value = rough; document.getElementById("vRough").textContent  = rough.toFixed(2);
+plEl.value = plateScale; document.getElementById("vPlate").textContent  = plateScale.toFixed(2);
+spEl.value = eyeSpread;  document.getElementById("vSpread").textContent = eyeSpread.toFixed(2);
+egEl.value = eyeScale;   document.getElementById("vEye").textContent    = eyeScale.toFixed(2);
+
+resize();
+rebuildAll();
+})();
+</script>
+</body>
+</html>

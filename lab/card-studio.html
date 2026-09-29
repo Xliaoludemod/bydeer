@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>显影工坊 · 拾遗</title>
+<style>
+:root{
+  --bg:#faf8f4; --ink:#2c2c2a; --ink-soft:#6b675f; --line:#d8d5cc; --card:#efede6; --accent:#8a6d4a;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  background:var(--bg);color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  padding:40px 32px 80px;
+}
+.wrap{max-width:1160px;margin:0 auto}
+header{margin-bottom:26px}
+h1{font-size:17px;font-weight:500;letter-spacing:.2em}
+.sub{margin-top:10px;font-size:12.5px;line-height:2;color:var(--ink-soft);max-width:800px}
+.sub b{color:var(--ink);font-weight:500}
+.sub .hi{color:var(--accent)}
+
+.bar{
+  display:flex;flex-wrap:wrap;gap:14px 22px;align-items:center;justify-content:space-between;
+  padding:16px 20px;background:#fff;border:1px solid var(--line);border-radius:12px;margin-bottom:26px;
+}
+.styles{display:flex;flex-wrap:wrap;gap:8px}
+.styles button{
+  padding:9px 18px;border:1px solid var(--line);background:#fff;border-radius:20px;
+  font-size:12px;letter-spacing:.1em;color:var(--ink-soft);cursor:pointer;font-family:inherit;transition:.2s;
+}
+.styles button:hover{background:var(--card)}
+.styles button.on{background:var(--ink);border-color:var(--ink);color:#fff}
+.save{display:flex;align-items:center;gap:12px}
+.save select{
+  font-family:inherit;font-size:12px;color:var(--ink);border:1px solid var(--line);
+  background:#fff;border-radius:8px;padding:9px 10px;letter-spacing:.06em;
+}
+.save button{
+  padding:11px 26px;border:1px solid var(--accent);background:var(--accent);color:#fff;
+  border-radius:10px;font-size:12.5px;letter-spacing:.14em;cursor:pointer;font-family:inherit;transition:.2s;
+}
+.save button:hover{opacity:.88}
+.fallback{margin:-14px 0 22px;font-size:11.5px;color:#a8a49b;text-align:right}
+.fallback a{color:var(--accent);text-decoration:none;border-bottom:1px solid rgba(138,109,74,.35);padding-bottom:1px}
+.fallback a:hover{border-bottom-color:var(--accent)}
+.preview canvas{transition:filter 1s ease}
+.preview canvas.dev{filter:saturate(.12) contrast(.3) brightness(1.62)}
+
+.main{display:flex;gap:34px;align-items:flex-start;flex-wrap:wrap}
+.previewbox{flex:1;min-width:340px;display:flex;justify-content:center}
+.preview{
+  width:100%;max-width:620px;padding:22px;border-radius:16px;background:#f1eee7;
+  display:flex;align-items:center;justify-content:center;
+}
+.preview canvas{
+  display:block;width:auto;max-width:100%;max-height:74vh;height:auto;
+  box-shadow:0 16px 40px rgba(60,52,40,.16), 0 2px 6px rgba(60,52,40,.08);
+  border-radius:2px;
+}
+.panel{width:322px;flex:none}
+.blk{margin-bottom:24px}
+.gl{font-size:11px;letter-spacing:.14em;color:var(--ink-soft);margin-bottom:11px}
+.drop{
+  border:1px dashed var(--line);border-radius:12px;background:#fff;
+  padding:20px 16px;text-align:center;cursor:pointer;transition:.2s;
+}
+.drop:hover{background:var(--card);border-color:#c3bfb5}
+.drop.now{border-style:solid;border-color:var(--accent);background:#fdfbf7}
+.drop b{display:block;font-size:12.5px;font-weight:500;letter-spacing:.1em}
+.drop span{display:block;margin-top:6px;font-size:11px;line-height:1.7;color:#a8a49b}
+.thumbrow{display:flex;gap:8px;margin-top:10px}
+.thumbrow button{
+  flex:1;padding:7px 0;border:1px solid var(--line);background:#fff;border-radius:8px;
+  font-size:11px;letter-spacing:.08em;color:var(--ink-soft);cursor:pointer;font-family:inherit;
+}
+.thumbrow button:hover{background:var(--card)}
+.thumbrow button.on{border-color:var(--accent);color:var(--accent)}
+.field{margin-bottom:13px}
+.field label{display:block;font-size:11px;letter-spacing:.1em;color:var(--ink-soft);margin-bottom:6px}
+.field input{
+  width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:#fff;
+  font-family:inherit;font-size:12.5px;color:var(--ink);outline:none;
+}
+.field input:focus{border-color:var(--accent)}
+.exif{margin-top:7px;font-size:11px;line-height:1.7;color:#a8a49b}
+.exif.ok{color:var(--accent)}
+.rowbtns{display:flex;gap:8px;flex-wrap:wrap}
+.rowbtns button{
+  padding:8px 18px;border:1px solid var(--line);background:#fff;border-radius:18px;
+  font-size:12px;letter-spacing:.08em;color:var(--ink-soft);cursor:pointer;font-family:inherit;transition:.2s;
+}
+.rowbtns button:hover{background:var(--card)}
+.rowbtns button.on{background:var(--ink);border-color:var(--ink);color:#fff}
+.field .withbtn{display:flex;gap:8px}
+.field .withbtn button{
+  flex:none;padding:0 14px;border:1px solid var(--line);background:#fff;border-radius:8px;
+  font-family:inherit;font-size:11.5px;letter-spacing:.08em;color:var(--ink-soft);cursor:pointer;
+}
+.field .withbtn button:hover{background:var(--card)}
+.togs{display:flex;flex-wrap:wrap;gap:9px}
+.togs label{
+  display:flex;align-items:center;gap:7px;font-size:11.5px;letter-spacing:.06em;color:var(--ink-soft);
+  border:1px solid var(--line);border-radius:16px;padding:7px 13px;background:#fff;cursor:pointer;
+}
+.togs input{accent-color:var(--accent);margin:0}
+.togs label.on{border-color:var(--accent);color:var(--accent)}
+
+.foot{margin-top:38px;font-size:11.5px;line-height:2;color:#a8a49b}
+.foot b{color:var(--ink-soft);font-weight:500}
+@media(max-width:900px){
+  body{padding:26px 16px 60px}
+  .panel{width:100%}
+  .preview{padding:14px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>显影工坊</h1>
+  <div class="sub">
+    挑一张照片，做成一张能直接发出去的卡片。<b>全部在你自己的浏览器里完成，不经过任何服务器</b>——
+    所以不用登录、不用等、永远不花钱。<br>
+    <span class="hi">把照片拖进这个页面，或者直接 Ctrl+V 粘一张。</span>
+    它会<b>自动读出照片里的 EXIF</b>（相机、镜头、光圈、快门、ISO）—— 那是摄影师签名的一部分，
+    你不用手打。每张照片还会得到<b>一个固定编号</b>（同一张永远是同一个号，像收藏品）。<br>
+    下面两张「演示图」是我用程序生成的测试图，不是你的照片，只为让你先看设计。
+  </div>
+</header>
+
+<div class="bar">
+  <div class="styles" id="styleBtns"></div>
+  <div class="save">
+    <select id="scale">
+      <option value="1">1080 宽（发社交平台）</option>
+      <option value="2" selected>2160 宽（高一点，能印）</option>
+    </select>
+    <button id="saveBtn">保存图片</button>
+  </div>
+</div>
+<div class="fallback" id="fallback"></div>
+
+<div class="main">
+  <div class="previewbox">
+    <div class="preview"><canvas id="cv"></canvas></div>
+  </div>
+
+  <div class="panel">
+    <div class="blk">
+      <div class="gl">照片</div>
+      <div class="drop" id="drop">
+        <b>拖一张照片到这里</b>
+        <span>或点击选择文件 · 也可以 Ctrl+V 粘贴</span>
+      </div>
+      <div class="thumbrow" id="demoRow">
+        <button data-src="demo/demo-land.jpg">演示图 · 横</button>
+        <button data-src="demo/demo-port.jpg">演示图 · 竖</button>
+      </div>
+    </div>
+
+    <div class="blk">
+      <div class="gl">文字（留空就不显示）</div>
+      <div class="field"><label>系列名</label><input id="fTitle" value="海边的人" maxlength="16"></div>
+      <div class="field">
+        <label>器材</label>
+        <input id="fMeta" value="Leica M6 · 35mm · Kodak Portra 400" maxlength="52">
+        <div class="exif none" id="exifStatus">拖一张你自己的照片进来 —— 相机、镜头、光圈、快门会自动读出来。</div>
+      </div>
+      <div class="field"><label>日期</label><input id="fDate" value="" maxlength="12" placeholder="留空就用今天"></div>
+      <div class="field"><label>一句话</label>
+        <div class="withbtn">
+          <input id="fLine" value="海把光还给了天。" maxlength="30">
+          <button id="rollLine">换一句</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="blk">
+      <div class="gl">暗房质感</div>
+      <div class="rowbtns" id="texBtns"></div>
+    </div>
+
+    <div class="blk">
+      <div class="gl">显示什么</div>
+      <div class="togs" id="togs">
+        <label><input type="checkbox" id="tMeta" checked>器材</label>
+        <label><input type="checkbox" id="tLine" checked>一句话</label>
+        <label><input type="checkbox" id="tNo" checked>编号</label>
+        <label><input type="checkbox" id="tSign" checked>签名文字</label>
+        <label><input type="checkbox" id="tDate">日期</label>
+        <label><input type="checkbox" id="tFit">照片完整放入</label>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="foot">
+  <b>关于"一句话"：</b>它是从一个小词库里随机抽的，没有调用任何 AI 服务——所以永远免费、永远不用等。你要自己写更好。<br>
+  <b>四种卡片：</b>明信片（纸感、带系列名）、邮票（打孔、满幅）、相纸（宝丽来留白）、胶片（深色片基 + 齿孔）。<br>
+  <b>暗房质感：</b>「轻 / 重」会给照片铺一层银盐颗粒和暗角，看起来像从暗房里出来的，而不是手机直出。<br>
+  <b>编号怎么来的：</b>取照片文件内容算一个哈希，所以<b>同一张照片永远是同一个号</b>——换了尺寸会变，重新导出同一张不会。这是本地的，不上传任何东西。<br>
+  <b>怎么装进网站：</b>这个页面本身就能直接挂上去当一个独立页面（纯静态，一个文件 + 图片），不需要任何后端。
+</div>
+
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ================= 字体 ================= */
+var SERIF = '"Songti SC","SimSun","Noto Serif SC",Georgia,serif';
+var SANS  = '-apple-system,"PingFang SC","Microsoft YaHei","Helvetica Neue",sans-serif';
+
+/* ================= 状态 ================= */
+var photo = null;          // 当前照片 Image
+var cardSel = 0;
+var texture = 0;           // 暗房质感 0 无 / 1 轻 / 2 重
+var serial = 0;            // 这张照片的固定编号
+var metaEdited = false;    // 用户手改过器材就不再自动覆盖
+var LINES = [
+  "海把光还给了天。","风停下来的那一秒。","我在等一个不会回来的人。","慢一点，什么都看得见。",
+  "光线好，别的都不重要。","所有的告别都是灰色的。","把这一刻剪下来贴在墙上。","沉默也是有重量的。",
+  "我按下快门，是为了记住自己看见过。","潮水退去，石头留了下来。","那时候天还没亮。","谁也没有说话。"
+];
+
+/* ================= 小工具 ================= */
+function font(ctx, size, weight, family, spacing) {
+  ctx.font = (weight || 400) + " " + size + "px " + family;
+  try { ctx.letterSpacing = (spacing || 0) + "px"; } catch (e) {}
+}
+function txt(ctx, s, x, y, size, weight, family, color, spacing, align) {
+  if (!s) return;
+  font(ctx, size, weight, family, spacing);
+  ctx.fillStyle = color;
+  ctx.textAlign = align || "left";
+  ctx.textBaseline = "alphabetic";
+  ctx.fillText(s, x, y);
+  ctx.textAlign = "left";
+}
+function hair(ctx, x1, y1, x2, y2, color, w) {
+  ctx.save();
+  ctx.strokeStyle = color; ctx.lineWidth = w || 1;
+  ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+  ctx.restore();
+}
+function today() {
+  var d = new Date();
+  function p(n){ return (n < 10 ? "0" : "") + n; }
+  return d.getFullYear() + "." + p(d.getMonth() + 1) + "." + p(d.getDate());
+}
+
+function dateStr() { return val("fDate") || today(); }
+
+/* ================= EXIF：照片里本来就写着你是谁、用什么拍的 ================= */
+function parseExif(dv) {
+  try {
+    if (dv.byteLength < 32 || dv.getUint8(0) !== 0xFF || dv.getUint8(1) !== 0xD8) return null;
+    var off = 2, guard = 0;
+    while (off + 4 <= dv.byteLength && guard++ < 400) {
+      if (dv.getUint8(off) !== 0xFF) { off++; continue; }
+      var mk = dv.getUint8(off + 1);
+      if (mk === 0xE1) break;
+      if (mk === 0x01 || (mk >= 0xD0 && mk <= 0xD9)) { off += 2; continue; }
+      var sz = dv.getUint16(off + 2, false);
+      if (sz < 2) return null;
+      off += 2 + sz;
+    }
+    if (off + 10 > dv.byteLength) return null;
+    var t = off + 10;
+    var le = (dv.getUint16(t, false) === 0x4949);
+    function u16(p){ return dv.getUint16(p, le); }
+    function u32(p){ return dv.getUint32(p, le); }
+    if (u16(t + 2) !== 0x002A) return null;
+    var ifd0 = t + u32(t + 4);
+    function ent(ifd, tag) {
+      if (!ifd || ifd + 2 > dv.byteLength) return null;
+      var n = u16(ifd);
+      for (var i = 0; i < n; i++) {
+        var e = ifd + 2 + i * 12;
+        if (e + 12 > dv.byteLength) return null;
+        if (u16(e) === tag) return { type: u16(e + 2), count: u32(e + 4), val: e + 8 };
+      }
+      return null;
+    }
+    function asc(x) {
+      if (!x) return "";
+      var p = x.count > 4 ? t + u32(x.val) : x.val, s = "";
+      if (p < 0 || p >= dv.byteLength) return "";
+      for (var i = 0; i < x.count; i++) {
+        var c = dv.getUint8(p + i);
+        if (c === 0) break;
+        s += String.fromCharCode(c);
+      }
+      return s.replace(/[\s\u0000]+$/, "").replace(/^\s+/, "");
+    }
+    function val(x) {
+      if (!x) return null;
+      if (x.type === 3) return u16(x.val);
+      if (x.type === 4) return u32(x.val);
+      if (x.type === 5) { var p = t + u32(x.val); var d = u32(p + 4); return d ? u32(p) / d : null; }
+      if (x.type === 10) { var q = t + u32(x.val); var d2 = dv.getInt32(q + 4, le); return d2 ? dv.getInt32(q, le) / d2 : null; }
+      return null;
+    }
+    var ex = ent(ifd0, 0x8769);
+    var exIfd = ex ? t + u32(ex.val) : 0;
+    var f = val(ent(exIfd, 0x829D));
+    var sh = val(ent(exIfd, 0x829A));
+    var dt = asc(ent(exIfd, 0x9003)) || asc(ent(ifd0, 0x0132));
+    return {
+      make: asc(ent(ifd0, 0x010F)),
+      model: asc(ent(ifd0, 0x0110)),
+      lens: asc(ent(exIfd, 0xA434)) || asc(ent(exIfd, 0x920A + 1)),
+      f: f ? (Math.round(f * 10) / 10) : null,
+      exp: sh ? (sh >= 1 ? (Math.round(sh * 10) / 10) + "s" : "1/" + Math.round(1 / sh) + "s") : null,
+      iso: val(ent(exIfd, 0x8827)),
+      focal: val(ent(exIfd, 0x920A)),
+      date: dt ? dt.slice(0, 10).replace(/:/g, ".") : ""
+    };
+  } catch (e) { return null; }
+}
+function readExif(file, cb) {
+  var fr = new FileReader();
+  fr.onload = function () {
+    var info = null;
+    try { info = parseExif(new DataView(fr.result)); } catch (e) { info = null; }
+    cb(info);
+  };
+  fr.onerror = function () { cb(null); };
+  fr.readAsArrayBuffer(file.slice(0, 256 * 1024));
+}
+
+/* ================= 每张照片一个固定编号（同一张永远是同一个号） ================= */
+function hashBytes(buf) {
+  if (!buf) return 0;
+  /* 关键：传进来的是 ArrayBuffer，不能直接下标取值，必须先包成 Uint8Array，
+     否则每个字节都是 undefined，编号会退化成"只看文件大小" */
+  var u8 = (buf instanceof Uint8Array) ? buf : new Uint8Array(buf);
+  var h = 2166136261 >>> 0, n = Math.min(u8.length, 160000);
+  /* 必须用 Math.imul：普通 h * 16777619 会超过 2^53，浮点丢精度，
+     编号就不跨浏览器稳定了 */
+  for (var i = 0; i < n; i += 3) { h ^= u8[i]; h = Math.imul(h, 16777619) >>> 0; }
+  return h;
+}
+
+/* ================= 暗房质感：颗粒 + 暗角 ================= */
+var noiseTile = null;
+function noiseCanvas() {
+  if (noiseTile) return noiseTile;
+  var c = document.createElement("canvas");
+  c.width = c.height = 190;
+  var x = c.getContext("2d"), d = x.createImageData(190, 190);
+  for (var i = 0; i < d.data.length; i += 4) {
+    var v = 128 + (Math.random() * 2 - 1) * 76;
+    d.data[i] = d.data[i + 1] = d.data[i + 2] = v;
+    d.data[i + 3] = 255;
+  }
+  x.putImageData(d, 0, 0);
+  noiseTile = c;
+  return c;
+}
+function darkroom(ctx, x, y, w, h, lv) {
+  if (!lv) return;
+  ctx.save();
+  ctx.globalCompositeOperation = "overlay";
+  ctx.globalAlpha = lv === 1 ? 0.11 : 0.20;
+  ctx.fillStyle = ctx.createPattern(noiseCanvas(), "repeat");
+  ctx.fillRect(x, y, w, h);
+  ctx.restore();
+  ctx.save();
+  ctx.globalCompositeOperation = "multiply";
+  var cx = x + w / 2, cy = y + h / 2;
+  var R = Math.sqrt(w * w + h * h) / 2;
+  var g = ctx.createRadialGradient(cx, cy, R * 0.40, cx, cy, R);
+  g.addColorStop(0, "#ffffff");
+  g.addColorStop(1, lv === 1 ? "#d2ccc2" : "#b0a89b");
+  ctx.fillStyle = g;
+  ctx.fillRect(x, y, w, h);
+  ctx.restore();
+}
+
+/* 右下角那块：签名文字（可带编号） */
+function signBlock(ctx, xRight, yBase, s, unusedInk, unusedEye, color) {
+  var parts = [];
+  if (on("tSign")) parts.push("By deer | see 小鹿");
+  if (on("tNo") && serial) parts.push("No." + serial);
+  if (parts.length) txt(ctx, parts.join("   ·   "), xRight, yBase, 21, 400, SANS, color, 2.4, "right");
+}
+
+/* ================= 照片绘制 ================= */
+function blank(ctx, x, y, w, h) {
+  var g = ctx.createLinearGradient(x, y, x, y + h);
+  g.addColorStop(0, "#dedad1"); g.addColorStop(1, "#bab5a9");
+  ctx.fillStyle = g; ctx.fillRect(x, y, w, h);
+  txt(ctx, "拖一张照片进来", x + w / 2, y + h / 2 + 8, Math.round(w * 0.032), 500, SANS, "rgba(255,255,255,.86)", 3, "center");
+}
+/* keep: "cover" 裁满 / "contain" 完整放入（补纸色） */
+function drawPhoto(ctx, x, y, w, h, fit, paper) {
+  if (!photo) { blank(ctx, x, y, w, h); return; }
+  var ir = photo.width / photo.height, r = w / h;
+  if (fit) {
+    ctx.fillStyle = paper || "#EFEDE6";
+    ctx.fillRect(x, y, w, h);
+    var cw = w, ch = w / ir;
+    if (ch > h) { ch = h; cw = h * ir; }
+    ctx.drawImage(photo, x + (w - cw) / 2, y + (h - ch) / 2, cw, ch);
+    darkroom(ctx, x, y, w, h, texture);
+    return;
+  }
+  var sw, sh, sx, sy;
+  if (ir > r) { sh = photo.height; sw = sh * r; sx = (photo.width - sw) / 2; sy = 0; }
+  else { sw = photo.width; sh = sw / r; sx = 0; sy = (photo.height - sh) / 2; }
+  ctx.drawImage(photo, sx, sy, sw, sh, x, y, w, h);
+  darkroom(ctx, x, y, w, h, texture);
+}
+
+/* ================= 取值 ================= */
+var el = function (id) { return document.getElementById(id); };
+function val(id) { return el(id).value.trim(); }
+function on(id) { return el(id).checked; }
+
+/* ================= 四种卡片 ================= */
+var CARDS = [
+  {
+    n: "明信片", w: 1080, h: 880,
+    draw: function (ctx, W, H) {
+      var paper = "#FBF9F5", pad = 58, ink = "#8a6d4a";
+      ctx.fillStyle = paper; ctx.fillRect(0, 0, W, H);
+      var ph = H - pad - 240;
+      drawPhoto(ctx, pad, pad, W - pad * 2, ph, on("tFit"), paper);
+      hair(ctx, pad, pad, W - pad, pad, "rgba(0,0,0,.08)");
+      hair(ctx, pad, pad + ph, W - pad, pad + ph, "rgba(0,0,0,.10)");
+      hair(ctx, pad, H - 186, W - pad, H - 186, "rgba(0,0,0,.09)");
+      txt(ctx, val("fTitle"), pad, H - 152, 54, 500, SERIF, "#2c2c2a", 4);
+      if (on("tMeta")) txt(ctx, val("fMeta"), pad, H - 100, 21, 400, SANS, "#8a857c", 2.4);
+      if (on("tLine")) txt(ctx, val("fLine"), W - pad, H - 152, 27, 400, SERIF, "#6b675f", 1, "right");
+      if (on("tDate")) txt(ctx, dateStr(), W - pad, H - 100, 19, 400, SANS, "#a8a49b", 2.2, "right");
+      signBlock(ctx, W - pad, H - 56, 54, ink, paper, ink);
+    }
+  },
+  {
+    n: "邮票", w: 1080, h: 1080,
+    draw: function (ctx, W, H) {
+      var ins = 52, bandH = 172, bandTop = H - ins - bandH, ink = "#8a6d4a";
+      ctx.fillStyle = "#FFFFFF"; ctx.fillRect(0, 0, W, H);
+      drawPhoto(ctx, ins, ins, W - ins * 2, bandTop - ins, on("tFit"), "#F1EFE9");
+      hair(ctx, ins, bandTop, W - ins, bandTop, "rgba(0,0,0,.12)");
+      txt(ctx, val("fTitle"), ins, bandTop + 62, 44, 500, SERIF, "#2c2c2a", 4);
+      if (on("tMeta")) txt(ctx, val("fMeta"), ins, bandTop + 106, 19, 400, SANS, "#8a857c", 2);
+      if (on("tLine")) txt(ctx, val("fLine"), ins, bandTop + 148, 22, 400, SERIF, "#6b675f", 1);
+      if (on("tDate")) txt(ctx, dateStr(), ins + 300, bandTop + 106, 19, 400, SANS, "#a8a49b", 2);
+      signBlock(ctx, W - ins, bandTop + 118, 54, ink, "#FFFFFF", ink);
+      /* 齿孔：沿四边打半圆，真的抠掉（PNG 透明） */
+      var R = 22, step = R * 2;
+      ctx.save();
+      ctx.globalCompositeOperation = "destination-out";
+      function bite(cx, cy) { ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2); ctx.fill(); }
+      ctx.fillStyle = "#000";
+      for (var x = R; x < W - R + R; x += step) { bite(x, 0); bite(x, H); }
+      for (var y = R; y < H - R + R; y += step) { bite(0, y); bite(W, y); }
+      ctx.restore();
+      ctx.strokeStyle = "rgba(0,0,0,.14)"; ctx.lineWidth = 1;
+      ctx.strokeRect(ins - 18, ins - 18, W - (ins - 18) * 2, H - (ins - 18) * 2);
+    }
+  },
+  {
+    n: "相纸", w: 1080, h: 1400,
+    draw: function (ctx, W, H) {
+      var paper = "#FCFAF6", pad = 74, ink = "#8a6d4a";
+      ctx.fillStyle = paper; ctx.fillRect(0, 0, W, H);
+      var side = W - pad * 2;
+      drawPhoto(ctx, pad, pad, side, side, on("tFit"), "#F1EFE9");
+      hair(ctx, pad, pad, W - pad, pad, "rgba(0,0,0,.07)");
+      var by = pad + side;
+      if (on("tLine")) txt(ctx, val("fLine"), pad + 26, by + 162, 54, 400, SERIF, "#2c2c2a", 2);
+      if (on("tMeta")) txt(ctx, val("fMeta"), pad + 26, by + 228, 22, 400, SANS, "#8a857c", 2.2);
+      if (on("tDate")) txt(ctx, dateStr(), W - pad - 26, by + 228, 21, 400, SANS, "#a8a49b", 2.2, "right");
+      signBlock(ctx, W - pad - 26, H - 64, 54, ink, paper, ink);
+    }
+  },
+  {
+    n: "胶片", w: 1080, h: 1320,
+    draw: function (ctx, W, H) {
+      ctx.fillStyle = "#191A1C"; ctx.fillRect(0, 0, W, H);
+      var pw = 46, phh = 34, gap = 22, m = W - 2 * 78;
+      function perfRow(y) {
+        var count = Math.max(6, Math.floor((m + gap) / (pw + gap)));
+        var rowW = count * pw + (count - 1) * gap;
+        var x0 = (W - rowW) / 2;
+        ctx.fillStyle = "rgba(245,242,236,.92)";
+        for (var i = 0; i < count; i++) {
+          ctx.beginPath();
+          var rx = x0 + i * (pw + gap), ry = y, r = 7;
+          ctx.moveTo(rx + r, ry);
+          ctx.arcTo(rx + pw, ry, rx + pw, ry + phh, r);
+          ctx.arcTo(rx + pw, ry + phh, rx, ry + phh, r);
+          ctx.arcTo(rx, ry + phh, rx, ry, r);
+          ctx.arcTo(rx, ry, rx + pw, ry, r);
+          ctx.fill();
+        }
+      }
+      perfRow(118);
+      var ph = 640;
+      drawPhoto(ctx, 64, 178, W - 128, ph, on("tFit"), "#26272A");
+      perfRow(178 + ph + 30);
+      txt(ctx, val("fMeta") || "KODAK PORTRA 400 · 35mm", 64, H - 214, 21, 400, SANS, "rgba(245,242,236,.72)", 2.6);
+      txt(ctx, "12A", W - 64, H - 214, 21, 400, SANS, "rgba(245,242,236,.5)", 2.6, "right");
+      txt(ctx, val("fTitle"), 64, H - 142, 56, 500, SERIF, "#F5F2EC", 5);
+      if (on("tLine")) txt(ctx, val("fLine"), 64, H - 92, 24, 400, SERIF, "rgba(245,242,236,.66)", 1);
+      if (on("tDate")) txt(ctx, dateStr(), 700, H - 92, 20, 400, SANS, "rgba(245,242,236,.5)", 2.2, "right");
+      signBlock(ctx, W - 64, H - 56, 54, "rgba(245,242,236,.85)", "#191A1C", "rgba(245,242,236,.6)");
+    }
+  }
+];
+
+/* ================= 绘制 ================= */
+var cv = document.getElementById("cv");
+var ctx = cv.getContext("2d");
+
+/* 网址参数：?s=0..3 选样式，?p=路径 指定照片（方便把一组发我） */
+var QP = (function () { try { return new URLSearchParams(location.search); } catch (_) { return null; } })();
+if (QP && QP.has("s")) {
+  var sv = parseInt(QP.get("s"), 10);
+  if (!isNaN(sv) && sv >= 0 && sv < CARDS.length) cardSel = sv;
+}
+if (QP && QP.has("tx")) {
+  var tv = parseInt(QP.get("tx"), 10);
+  if (!isNaN(tv) && tv >= 0 && tv <= 2) texture = tv;
+}
+
+function draw(develop) {
+  var c = CARDS[cardSel];
+  cv.width = c.w; cv.height = c.h;
+  ctx.clearRect(0, 0, c.w, c.h);
+  c.draw(ctx, c.w, c.h);
+  /* 显影：换照片 / 换样式时，卡片先"没显出来"，再慢慢显影 */
+  if (develop) {
+    cv.classList.add("dev");
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () { cv.classList.remove("dev"); });
+    });
+  }
+}
+
+/* ================= 样式按钮 ================= */
+(function () {
+  var wrap = document.getElementById("styleBtns");
+  CARDS.forEach(function (c, i) {
+    var b = document.createElement("button");
+    b.textContent = c.n;
+    if (i === cardSel) b.className = "on";
+    b.addEventListener("click", function () {
+      cardSel = i;
+      Array.prototype.forEach.call(wrap.children, function (x) { x.className = ""; });
+      b.className = "on";
+      draw(true);
+    });
+    wrap.appendChild(b);
+  });
+})();
+
+/* ================= 暗房质感 ================= */
+(function () {
+  var wrap = document.getElementById("texBtns");
+  ["无", "轻", "重"].forEach(function (nm, i) {
+    var b = document.createElement("button");
+    b.textContent = nm;
+    if (i === texture) b.className = "on";
+    b.addEventListener("click", function () {
+      texture = i;
+      Array.prototype.forEach.call(wrap.children, function (x) { x.className = ""; });
+      b.className = "on";
+      draw();
+    });
+    wrap.appendChild(b);
+  });
+})();
+
+/* ================= 照片载入 ================= */
+function loadSrc(src) {
+  var im = new Image();
+  im.onload = function () { photo = im; draw(true); };
+  im.onerror = function () { alert("这张图打不开，换个文件试试"); };
+  im.src = src;
+  /* 编号：按照片内容算，同一张照片永远是同一个号 */
+  fetch(src).then(function (r) { return r.arrayBuffer(); })
+    .then(function (b) { serial = hashBytes(b) % 900 + 100; draw(false); })
+    .catch(function () {});
+}
+function autoFillMeta(info) {
+  var st = document.getElementById("exifStatus");
+  if (!info) {
+    st.textContent = "这张照片没有 EXIF 信息（截图、导出的图常见）—— 器材可以手填。";
+    st.className = "exif none";
+    return;
+  }
+  var parts = [], mk = info.make, md = info.model;
+  if (mk || md) {
+    if (md && mk && md.indexOf(mk) === 0) parts.push(md);
+    else parts.push((mk + " " + md).trim());
+  }
+  if (info.lens) parts.push(info.lens);
+  if (info.f) parts.push("f/" + info.f);
+  if (info.exp) parts.push(info.exp);
+  if (info.iso) parts.push("ISO " + info.iso);
+  var s = parts.join(" · ");
+  if (!s) {
+    st.textContent = "这张照片的 EXIF 里没有相机信息。";
+    st.className = "exif none";
+    return;
+  }
+  st.textContent = "✓ 已从照片读出：" + s;
+  st.className = "exif ok";
+  if (!metaEdited) {
+    document.getElementById("fMeta").value = s;
+    if (info.date) document.getElementById("fDate").value = info.date;
+  }
+  draw(true);
+}
+function loadFile(f) {
+  if (!f || !/^image\//.test(f.type)) return;
+  readExif(f, function (info) { autoFillMeta(info); });
+  loadSrc(URL.createObjectURL(f));
+}
+(function () {
+  var drop = document.getElementById("drop");
+  drop.addEventListener("click", function () {
+    var inp = document.createElement("input");
+    inp.type = "file"; inp.accept = "image/*";
+    inp.addEventListener("change", function () { loadFile(inp.files[0]); });
+    inp.click();
+  });
+  ["dragenter", "dragover"].forEach(function (t) {
+    document.addEventListener(t, function (e) { e.preventDefault(); drop.classList.add("now"); });
+  });
+  ["dragleave", "drop"].forEach(function (t) {
+    document.addEventListener(t, function (e) { e.preventDefault(); drop.classList.remove("now"); });
+  });
+  document.addEventListener("drop", function (e) {
+    var dt = e.dataTransfer;
+    if (dt && dt.files && dt.files.length) loadFile(dt.files[0]);
+  });
+  document.addEventListener("paste", function (e) {
+    var items = (e.clipboardData || {}).items || [];
+    for (var i = 0; i < items.length; i++) {
+      if (items[i].type && items[i].type.indexOf("image") === 0) {
+        loadFile(items[i].getAsFile());
+        e.preventDefault();
+        return;
+      }
+    }
+  });
+})();
+
+/* 演示图 */
+(function () {
+  var row = document.getElementById("demoRow");
+  row.addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-src]");
+    if (!b) return;
+    Array.prototype.forEach.call(row.children, function (x) { x.className = ""; });
+    b.className = "on";
+    loadSrc(b.dataset.src);
+  });
+  var first = row.querySelector("button[data-src]");
+  var want = (QP && QP.get("p")) ? QP.get("p") : null;
+  if (want) { loadSrc(want); return; }
+  if (first) { first.className = "on"; loadSrc(first.dataset.src); }
+})();
+
+/* ================= 文字 / 开关 ================= */
+/* 注意：回调里不能直接写 draw —— 事件对象会被当成 develop 参数，每敲一个字都触发显影动画 */
+["fTitle", "fMeta", "fLine", "fDate"].forEach(function (id) {
+  document.getElementById(id).addEventListener("input", function () { draw(); });
+});
+document.getElementById("fMeta").addEventListener("input", function () { metaEdited = true; });
+["tMeta", "tLine", "tSign", "tNo", "tDate", "tFit"].forEach(function (id) {
+  var box = document.getElementById(id);
+  box.addEventListener("change", function () {
+    box.parentNode.classList.toggle("on", box.checked);
+    draw();
+  });
+  box.parentNode.classList.toggle("on", box.checked);
+});
+document.getElementById("rollLine").addEventListener("click", function () {
+  var cur = val("fLine"), pick = cur;
+  for (var i = 0; i < 8 && pick === cur; i++) pick = LINES[Math.floor(Math.random() * LINES.length)];
+  document.getElementById("fLine").value = pick;
+  draw();
+});
+
+/* ================= 保存 ================= */
+var lastURL = null;
+function clearFallback() { document.getElementById("fallback").innerHTML = ""; }
+document.getElementById("saveBtn").addEventListener("click", function () {
+  var btn = this, old = btn.textContent;
+  btn.textContent = "正在生成…";
+  clearFallback();
+  var scale = parseInt(document.getElementById("scale").value, 10) || 1;
+  var c = CARDS[cardSel];
+  var out = document.createElement("canvas");
+  out.width = Math.round(c.w * scale);
+  out.height = Math.round(c.h * scale);
+  var x = out.getContext("2d");
+  x.scale(scale, scale);
+  c.draw(x, c.w, c.h);
+  var name = "拾遗·" + c.n + "·" + (val("fTitle") || "作品") + ".png";
+  out.toBlob(function (b) {
+    if (lastURL) { URL.revokeObjectURL(lastURL); lastURL = null; }
+    lastURL = URL.createObjectURL(b);
+    var a = document.createElement("a");
+    a.href = lastURL; a.download = name;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    /* 兜底：预览面板里有些浏览器会拦下载，给一个新窗口打开的入口 */
+    var fb = document.getElementById("fallback");
+    fb.innerHTML = "";
+    var link = document.createElement("a");
+    link.href = lastURL; link.target = "_blank"; link.rel = "noopener";
+    link.textContent = "没自动下载？点这里在新窗口打开图片，再右键「图片另存为」";
+    fb.appendChild(link);
+    btn.textContent = "已保存";
+    setTimeout(function () { btn.textContent = old; }, 1600);
+  }, "image/png");
+});
+
+draw();
+})();
+</script>
+</body>
+</html>

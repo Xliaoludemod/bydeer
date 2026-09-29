@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>By deer | see 小鹿</title>
+<meta name="description" content="看见时间的颗粒 · 银盐 / 像素 / 动态">
+<link rel="stylesheet" href="css/style.css?v=20260927a55">
+<script>
+/* ★ 从详情页「← 返回」或浏览器后退回来时，别重播入场淡入（刚看过的东西又淡一遍很烦）。
+   放在 <head> 里、CSS 之后、正文之前执行 —— 这样在第一次绘制前就打好标记，不会闪一下。
+   判断依据：详情页写下的 bydeer:restoreScroll 标记，或这次是"后退/刷新"而不是普通点链接。 */
+(function () {
+  try {
+    var n = performance.getEntriesByType && performance.getEntriesByType("navigation")[0];
+    var back = sessionStorage.getItem("bydeer:restoreScroll") || (n && n.type && n.type !== "navigate");
+    if (back) document.documentElement.className += " no-anim";
+  } catch (e) {}
+})();
+</script>
+</head>
+<body>
+
+<header class="hero" id="hero">
+  <div class="hero-slides" id="heroSlides"></div>
+  <div class="hero-blur" id="heroBlur"></div>
+
+  <nav class="nav">
+    <div class="nav-logo">By deer&nbsp;|&nbsp;see 小鹿</div>
+
+    <form class="nav-search" action="find.html" method="get" role="search">
+      <input type="search" name="q" placeholder="找照片 · 安静的、水边的…"
+             autocomplete="off" aria-label="找照片">
+      <button type="submit" aria-label="搜索">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round">
+          <circle cx="10.5" cy="10.5" r="6.6"></circle>
+          <path d="M15.6 15.6L21 21"></path>
+        </svg>
+      </button>
+    </form>
+
+    <div class="nav-social" id="navSocial"></div>
+  </nav>
+
+  <div class="hero-text">
+    <h1>看见时间的颗粒</h1>
+    <p>银盐 / 像素 / 动态 · 2024 – 2026</p>
+  </div>
+
+  <div class="hero-dots" id="heroDots"></div>
+  <div class="hero-scroll">向下滑动</div>
+</header>
+
+<main>
+  <section class="index-section reveal" id="indexSection">
+    <div class="index-list" id="indexList"></div>
+    <div class="index-preview" id="indexPreview">
+      <img id="previewImg" alt="">
+      <div class="preview-caption"><span id="previewTitle"></span><span id="previewMeta"></span></div>
+    </div>
+  </section>
+
+  <section class="archive-section reveal">
+    <div class="filter-row" id="filterRow"></div>
+    <div class="archive-grid" id="archiveGrid"></div>
+  </section>
+</main>
+
+<div class="lightbox" id="lightbox">
+  <button class="lb-close" id="lbClose">×</button>
+  <button class="lb-prev" id="lbPrev">‹</button>
+  <button class="lb-next" id="lbNext">›</button>
+  <figure class="lb-figure">
+    <img id="lbImg" alt="">
+  </figure>
+  <div class="lb-info">
+    <div class="lb-work" id="lbWork"></div>
+    <div class="lb-gear" id="lbGear"></div>
+    <div class="lb-share" id="lbShare"></div>
+  </div>
+</div>
+
+<script src="js/data.js?v=20260927a55"></script>
+<script src="js/main.js?v=20260927a55"></script>
+</body>
+</html>

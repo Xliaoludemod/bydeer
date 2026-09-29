@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>找照片 · 拾遗</title>
+<style>
+:root{
+  --bg:#faf8f4; --ink:#2c2c2a; --ink-soft:#6b675f; --line:#d8d5cc; --card:#efede6; --accent:#8a6d4a;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  background:var(--bg);color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  padding:0 0 90px;
+}
+.nav{
+  height:62px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 30px;border-bottom:1px solid var(--line);background:rgba(250,248,244,.92);
+  position:sticky;top:0;z-index:20;backdrop-filter:blur(8px);
+}
+.nav a{font-size:12px;letter-spacing:.14em;color:var(--ink-soft);text-decoration:none}
+.nav a:hover{color:var(--ink)}
+.nav .logo{font-size:12.5px;letter-spacing:.22em;color:var(--ink)}
+
+.head{max-width:1180px;margin:0 auto;padding:52px 32px 0}
+.head h1{font-size:26px;font-weight:500;letter-spacing:.12em}
+.head p{margin-top:14px;font-size:13px;line-height:2;color:var(--ink-soft);max-width:680px}
+.head p b{color:var(--ink);font-weight:500}
+.head p .hi{color:var(--accent)}
+
+.search{max-width:1180px;margin:30px auto 0;padding:0 32px}
+.box{display:flex;gap:12px;align-items:center;
+  background:#fff;border:1px solid var(--line);border-radius:14px;padding:6px 8px 6px 20px;
+  transition:border-color .25s, box-shadow .25s}
+.box:focus-within{border-color:var(--accent);box-shadow:0 6px 24px rgba(138,109,74,.10)}
+.box input{
+  flex:1;border:none;outline:none;background:transparent;font-family:inherit;
+  font-size:15px;color:var(--ink);letter-spacing:.04em;padding:14px 0;
+}
+.box input::placeholder{color:#b8b3a9}
+.box button{
+  flex:none;border:none;border-radius:10px;background:var(--ink);color:#fff;
+  font-family:inherit;font-size:12.5px;letter-spacing:.14em;padding:12px 22px;cursor:pointer;
+}
+.box button:hover{opacity:.88}
+.tips{margin-top:13px;font-size:11.5px;letter-spacing:.06em;color:#a8a49b;line-height:1.9}
+.tips b{color:var(--ink-soft);font-weight:500}
+
+.chips{max-width:1180px;margin:20px auto 0;padding:0 32px;display:flex;flex-wrap:wrap;gap:8px}
+.chips button{
+  border:1px solid var(--line);background:#fff;border-radius:16px;padding:7px 14px;
+  font-family:inherit;font-size:11.5px;letter-spacing:.08em;color:var(--ink-soft);cursor:pointer;transition:.2s;
+}
+.chips button:hover{background:var(--card)}
+.chips button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+
+.meta{max-width:1180px;margin:34px auto 0;padding:0 32px;
+  display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.meta .n{font-size:12px;letter-spacing:.14em;color:var(--ink-soft);font-variant-numeric:tabular-nums}
+.meta .n b{color:var(--accent);font-weight:500}
+.meta .why{font-size:11.5px;letter-spacing:.06em;color:#a8a49b}
+.meta .why em{font-style:normal;color:var(--accent)}
+
+.grid{max-width:1180px;margin:20px auto 0;padding:0 32px;
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(316px,1fr));gap:26px}
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden;
+  animation:pop .5s cubic-bezier(.2,0,.2,1) both}
+@keyframes pop{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.card .ph{position:relative;aspect-ratio:3/2;background:var(--card);overflow:hidden}
+.card .ph img{width:100%;height:100%;object-fit:cover;display:block}
+.card .ph .tone{
+  position:absolute;left:12px;top:12px;font-size:10.5px;letter-spacing:.16em;
+  color:#fff;background:rgba(30,26,20,.42);border-radius:12px;padding:4px 11px;backdrop-filter:blur(4px);
+}
+.card .tx{padding:15px 17px 17px}
+.card .tx h3{font-size:13.5px;font-weight:500;letter-spacing:.1em}
+.card .tx .note{
+  margin-top:9px;font-size:13px;line-height:1.85;color:#4c4841;
+  font-family:"Songti SC","SimSun","Noto Serif SC",Georgia,serif;
+}
+.card .tx .ai{display:block;margin-top:5px;font-size:10.5px;letter-spacing:.14em;color:#bcb7ad}
+.card .tx .tags{margin-top:11px;display:flex;flex-wrap:wrap;gap:6px}
+.card .tx .tags i{
+  font-style:normal;font-size:10.5px;letter-spacing:.08em;color:#a8a49b;
+  border:1px solid var(--line);border-radius:10px;padding:3px 9px;
+}
+.card .tx .tags i.hit{color:#fff;background:var(--accent);border-color:var(--accent)}
+.card .tx .gear{margin-top:11px;font-size:11px;letter-spacing:.08em;color:#b0aba2}
+
+.empty{max-width:1180px;margin:60px auto;padding:0 32px;text-align:center}
+.empty b{display:block;font-size:14px;font-weight:500;letter-spacing:.1em;color:var(--ink-soft)}
+.empty span{display:block;margin-top:12px;font-size:12px;line-height:2;color:#a8a49b}
+
+.foot{max-width:1180px;margin:60px auto 0;padding:0 32px;font-size:11.5px;line-height:2.05;color:#a8a49b}
+.foot b{color:var(--ink-soft);font-weight:500}
+.foot .hi{color:var(--accent)}
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <a href="#">← 返回首页</a>
+  <div class="logo">By deer ｜ see 小鹿</div>
+  <a href="develop.html">海边的人 →</a>
+</div>
+
+<div class="head">
+  <h1>找照片</h1>
+  <p>
+    照片多起来以后，翻是最累的。<b>这里可以直接说人话找</b>——
+    「想看点安静的、水边的」「有没有雾」都行。<br>
+    <span class="hi">AI 看过每一张照片</span>，把它看见的东西写成了词和一句话；这里拿它来检索。
+    所以它是<b>秒回</b>的，也不花任何人的钱。
+  </p>
+</div>
+
+<div class="search">
+  <div class="box">
+    <input id="q" type="search" placeholder="试试：想看点安静的、水边的" autocomplete="off">
+    <button id="go">找</button>
+  </div>
+  <div class="tips">
+    <b>换个说法也行：</b>傍晚 / 日落 / 黄昏　·　雾 / 朦胧 / 看不清　·　夜 / 黑 / 暗　·　蓝 / 冷　·　暖 / 黄
+  </div>
+</div>
+
+<div class="chips" id="chips"></div>
+
+<div class="meta">
+  <div class="n" id="count"></div>
+  <div class="why" id="why"></div>
+</div>
+
+<div class="grid" id="grid"></div>
+<div class="empty" id="empty" style="display:none">
+  <b>没找到</b>
+  <span>换个说法试试 —— 或者说得更松一点，比如只写「水边」。</span>
+</div>
+
+<div class="foot">
+  <b>AI 在哪儿：</b>在"读照片"这一步 —— 每张照片被看过一遍，写下关键词和一句展签。
+  访客的浏览器里<b>不跑任何模型</b>，所以打开就秒回，不花流量也不花钱。<br>
+  <b>这是为什么：</b>在访客浏览器里跑真模型要下载 30–100MB，你的链接是发微信给朋友的——等 20 秒，人就走了。<br>
+  <b>你加照片时：</b>把照片丢给我（或任何能看图的 AI），让它按这个格式产出「关键词 + 一句展签」，
+  填进 <span class="hi">data.js</span> 的 <span class="hi">tags</span> / <span class="hi">note</span> 两个字段就行。200–400 张可以分批跑。<br>
+  <b>下面演示用的 6 张是程序生成的测试图</b>，不是你的照片；标签和展签是我看过它们之后写的。
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ================= 数据 =================
+   真实站点里这些来自 js/data.js。
+   tags  / note = AI 读过这张照片后写的；tone = 影调倾向，用来看"想找亮一点的/暗一点的"。*/
+var PHOTOS = [
+  {
+    src: "demo/d1.jpg", title: "黎明前二十分钟", w: 1400, h: 933,
+    gear: "Leica M6 · 35mm · Portra 400", tone: "高调 / 暖",
+    tags: ["黎明", "清晨", "海", "水边", "地平线", "安静", "留白", "暖", "开阔"],
+    note: "天已经亮了，但太阳还没有。海面像一块还没干透的纸，光是横着来的。"
+  },
+  {
+    src: "demo/d3.jpg", title: "夜航船", w: 933, h: 1400,
+    gear: "Leica M6 · 50mm · Tri-X 400", tone: "低调 / 冷",
+    tags: ["夜", "暗", "深蓝", "冷", "海", "水边", "剪影", "岸", "安静", "孤独"],
+    note: "什么都看不见，只剩下岸的边。船在很远的地方，灯是唯一的证据。"
+  },
+  {
+    src: "demo/d2.jpg", title: "雾里的对岸", w: 1400, h: 933,
+    gear: "Leica M6 · 35mm · Portra 400", tone: "中间调 / 灰",
+    tags: ["雾", "朦胧", "看不清", "灰", "海", "水边", "对岸", "安静", "留白", "极简"],
+    note: "对岸在，但你不该看见它。雾把所有东西都擦了一遍，只留下一条水平线。"
+  },
+  {
+    src: "demo/d6.jpg", title: "退潮线", w: 1400, h: 933,
+    gear: "Leica M6 · 35mm · Ektar 100", tone: "高对比 / 冷",
+    tags: ["青蓝", "冷", "水", "海", "远山", "深", "开阔", "痕"],
+    note: "水退下去以后，留下一条很轻的线。它比任何脚印都诚实。"
+  },
+  {
+    src: "demo/d5.jpg", title: "晒网的下午", w: 933, h: 1400,
+    gear: "Leica M6 · 50mm · Portra 160", tone: "暖 / 棕褐",
+    tags: ["午后", "暖", "黄", "棕褐", "旧", "沙", "岸", "安静", "日常"],
+    note: "下午三点的光把所有东西都染黄了。网挂在竿上，像谁忘收的句子。"
+  },
+  {
+    src: "demo/d4.jpg", title: "没有人的码头", w: 1400, h: 933,
+    gear: "Leica M6 · 35mm · Tri-X 400", tone: "中间调 / 灰",
+    tags: ["灰", "平光", "水", "码头", "空", "安静", "极简", "留白", "日常"],
+    note: "正午的平光最难拍，也最诚实：什么都没有藏起来，也什么都没有被照亮。"
+  }
+];
+
+/* ================= 说法库：把人的话翻成标签 ================= */
+var SYN = {
+  "安静": ["安静", "静", "宁静", "平静", "清净", "清净点", "安宁", "冷清", "孤独", "独处", "没人", "空旷"],
+  "水边": ["水边", "水", "海", "海边", "海上", "海边", "岸", "码头", "河边", "湖", "浪", "潮", "水面"],
+  "雾":   ["雾", "起雾", "朦胧", "模糊", "看不清", "雾气", "仙", "空灵"],
+  "夜":   ["夜", "夜晚", "晚上", "深夜", "黑", "暗", "昏", "低光"],
+  "黎明": ["黎明", "清晨", "早上", "早晨", "日出", "天亮", "破晓", "晨"],
+  "午后": ["午后", "下午", "中午", "正午", "白天", "午"],
+  "暖":   ["暖", "暖色", "黄", "金", "橙", "夕阳", "日落", "黄昏", "傍晚", "棕", "棕褐", "旧", "复古"],
+  "冷":   ["冷", "冷色", "蓝", "青", "深蓝", "青蓝", "冷调"],
+  "灰":   ["灰", "灰色", "灰调", "素", "淡", "平", "低饱和", "黑白"],
+  "留白": ["留白", "极简", "简约", "干净", "空", "空一点", "简单"],
+  "开阔": ["开阔", "广", "辽阔", "大气", "远", "视野"],
+  "剪影": ["剪影", "影子", "轮廓", "逆光"],
+  "日常": ["日常", "生活", "人味", "小事", "普通"],
+  "高调": ["亮", "明亮", "高调", "通透", "轻"],
+  "低调": ["暗一点", "压暗", "低调", "深", "压抑", "沉"]
+};
+/* 反向索引：一个人说的词 → 可能对应的标签 */
+var LOOKUP = {};
+Object.keys(SYN).forEach(function (tag) {
+  SYN[tag].forEach(function (w) { (LOOKUP[w] = LOOKUP[w] || []).push(tag); });
+});
+
+var TAG_ORDER = ["安静", "水边", "雾", "夜", "黎明", "午后", "暖", "冷", "灰", "留白", "开阔", "剪影", "日常", "高调", "低调"];
+
+/* ================= 检索 ================= */
+function parse(q) {
+  var raw = (q || "").trim();
+  if (!raw) return [];
+  var found = [];
+  /* 先按长词优先扫一遍整句，再切成词 */
+  var chunks = raw.split(/[\s,，、。·;；\/]+/).filter(Boolean);
+  chunks.forEach(function () {});
+  var all = chunks.slice();
+  all.push(raw);
+  all.forEach(function (w) {
+    var hit = LOOKUP[w];
+    if (hit) hit.forEach(function (t) { if (found.indexOf(t) < 0) found.push(t); });
+  });
+  /* 中文没有空格：再对整句做子串匹配 */
+  Object.keys(LOOKUP).forEach(function (w) {
+    if (raw.indexOf(w) >= 0) {
+      LOOKUP[w].forEach(function (t) { if (found.indexOf(t) < 0) found.push(t); });
+    }
+  });
+  return found;
+}
+
+function search(q, picks) {
+  var wanted = parse(q).concat(picks || []);
+  if (!wanted.length) return { rows: [], hit: [] };
+  var rows = [];
+  PHOTOS.forEach(function (p) {
+    var hit = wanted.filter(function (t) { return p.tags.indexOf(t) >= 0; });
+    if (!hit.length) return;
+    var score = hit.length * 2;
+    /* 展签里也提到过，加权 */
+    hit.forEach(function (t) { if (p.note.indexOf(t) >= 0) score += 1; });
+    rows.push({ p: p, hit: hit, score: score });
+  });
+  rows.sort(function (a, b) { return b.score - a.score; });
+  return { rows: rows, hit: wanted };
+}
+
+/* ================= 渲染 ================= */
+var grid = document.getElementById("grid"),
+    countEl = document.getElementById("count"),
+    whyEl = document.getElementById("why"),
+    emptyEl = document.getElementById("empty"),
+    qEl = document.getElementById("q"),
+    chipsEl = document.getElementById("chips");
+
+var picks = [];
+
+function render() {
+  var q = qEl.value;
+  var res = search(q, picks);
+  var active = (q.trim() || picks.length);
+  grid.innerHTML = "";
+  countEl.innerHTML = "";
+  whyEl.innerHTML = "";
+
+  if (!active) {
+    countEl.innerHTML = "全部 <b>" + PHOTOS.length + "</b> 张";
+    emptyEl.style.display = "none";
+    renderAll();
+    return;
+  }
+  if (!res.rows.length) {
+    grid.style.display = "none";
+    emptyEl.style.display = "block";
+    countEl.innerHTML = "找到 <b>0</b> 张";
+    return;
+  }
+  grid.style.display = "grid";
+  emptyEl.style.display = "none";
+  countEl.innerHTML = "找到 <b>" + res.rows.length + "</b> 张";
+  whyEl.innerHTML = "匹配的线索：<em>" + res.hit.join(" · ") + "</em>";
+
+  res.rows.forEach(function (r, i) {
+    var c = document.createElement("figure");
+    c.className = "card";
+    c.style.animationDelay = (i * 45) + "ms";
+    c.innerHTML =
+      '<div class="ph"><img src="' + r.p.src + '" alt="' + r.p.title + '" loading="lazy">' +
+      '<div class="tone">' + r.p.tone + '</div></div>' +
+      '<div class="tx"><h3>' + r.p.title + '</h3>' +
+      '<div class="note">' + r.p.note + '<span class="ai">AI 展签</span></div>' +
+      '<div class="tags">' + r.p.tags.map(function (t) {
+        return '<i class="' + (r.hit.indexOf(t) >= 0 ? "hit" : "") + '">' + t + '</i>';
+      }).join("") + '</div>' +
+      '<div class="gear">' + r.p.gear + '</div></div>';
+    grid.appendChild(c);
+  });
+}
+
+function renderAll() {
+  grid.style.display = "grid";
+  grid.innerHTML = "";
+  PHOTOS.forEach(function (p, i) {
+    var c = document.createElement("figure");
+    c.className = "card";
+    c.style.animationDelay = (i * 45) + "ms";
+    c.innerHTML =
+      '<div class="ph"><img src="' + p.src + '" alt="' + p.title + '" loading="lazy">' +
+      '<div class="tone">' + p.tone + '</div></div>' +
+      '<div class="tx"><h3>' + p.title + '</h3>' +
+      '<div class="note">' + p.note + '<span class="ai">AI 展签</span></div>' +
+      '<div class="tags">' + p.tags.map(function (t) { return '<i>' + t + '</i>'; }).join("") + '</div>' +
+      '<div class="gear">' + p.gear + '</div></div>';
+    grid.appendChild(c);
+  });
+}
+
+/* ================= 交互 ================= */
+document.getElementById("go").addEventListener("click", render);
+qEl.addEventListener("keydown", function (e) { if (e.key === "Enter") render(); });
+var timer = null;
+qEl.addEventListener("input", function () {
+  clearTimeout(timer);
+  timer = setTimeout(render, 220);
+});
+
+TAG_ORDER.forEach(function (t) {
+  var b = document.createElement("button");
+  b.textContent = t;
+  b.addEventListener("click", function () {
+    var i = picks.indexOf(t);
+    if (i >= 0) { picks.splice(i, 1); b.classList.remove("on"); }
+    else { picks.push(t); b.classList.add("on"); }
+    render();
+  });
+  chipsEl.appendChild(b);
+});
+
+/* 网址参数：?q=安静的水边 */
+try {
+  var q0 = new URLSearchParams(location.search).get("q");
+  if (q0) { qEl.value = q0; render(); } else { render(); }
+} catch (e) { render(); }
+})();
+</script>
+</body>
+</html>

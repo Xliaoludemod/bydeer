@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>照片体检 · 拾遗</title>
+<style>
+:root{
+  --bg:#faf8f4; --ink:#2c2c2a; --ink-soft:#6b675f; --line:#d8d5cc; --card:#efede6; --accent:#8a6d4a;
+  --ok:#5c7a52; --warn:#a8763a;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  background:var(--bg);color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  padding:0 0 90px;
+}
+.nav{
+  height:62px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 30px;border-bottom:1px solid var(--line);background:rgba(250,248,244,.92);
+  position:sticky;top:0;z-index:20;backdrop-filter:blur(8px);
+}
+.nav a{font-size:12px;letter-spacing:.14em;color:var(--ink-soft);text-decoration:none}
+.nav a:hover{color:var(--ink)}
+.nav .logo{font-size:12.5px;letter-spacing:.22em;color:var(--ink)}
+
+.head{max-width:1180px;margin:0 auto;padding:52px 32px 0}
+.head h1{font-size:26px;font-weight:500;letter-spacing:.12em}
+.head p{margin-top:16px;font-size:13px;line-height:2.05;color:var(--ink-soft);max-width:720px}
+.head p b{color:var(--ink);font-weight:500}
+.head p .hi{color:var(--accent)}
+
+.dropzone{max-width:1180px;margin:32px auto 0;padding:0 32px}
+.drop{
+  border:1px dashed var(--line);border-radius:16px;background:#fff;
+  padding:40px 24px;text-align:center;cursor:pointer;transition:.22s;
+}
+.drop:hover,.drop.now{background:#fdfbf7;border-color:var(--accent)}
+.drop b{display:block;font-size:14px;font-weight:500;letter-spacing:.12em}
+.drop span{display:block;margin-top:9px;font-size:12px;line-height:1.9;color:#a8a49b}
+.demos{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;justify-content:center}
+.demos button{
+  border:1px solid var(--line);background:#fff;border-radius:16px;padding:7px 15px;
+  font-family:inherit;font-size:11.5px;letter-spacing:.08em;color:var(--ink-soft);cursor:pointer;
+}
+.demos button:hover{background:var(--card)}
+
+.sheet{max-width:1180px;margin:36px auto 0;padding:0 32px;display:none}
+.sheet.on{display:block}
+.top{display:flex;gap:26px;align-items:flex-start;flex-wrap:wrap}
+.top img{
+  width:min(360px,100%);border-radius:12px;display:block;
+  box-shadow:0 12px 34px rgba(60,52,40,.14);
+}
+.summary{flex:1;min-width:280px}
+.summary h2{font-size:15px;font-weight:500;letter-spacing:.14em}
+.summary .mood{
+  margin-top:14px;font-size:14px;line-height:2;color:#4c4841;
+  font-family:"Songti SC","SimSun","Noto Serif SC",Georgia,serif;
+}
+.summary .sub{margin-top:10px;font-size:11px;letter-spacing:.14em;color:#bcb7ad}
+.palette{display:flex;gap:0;margin-top:22px;border-radius:10px;overflow:hidden;height:52px;border:1px solid var(--line)}
+.palette div{flex:1;display:flex;align-items:flex-end;justify-content:center;padding-bottom:5px;
+  font-size:10px;letter-spacing:.06em;color:rgba(255,255,255,.86);text-shadow:0 1px 3px rgba(0,0,0,.35)}
+
+.readings{display:grid;grid-template-columns:repeat(auto-fill,minmax(268px,1fr));gap:16px;margin-top:34px}
+.rd{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px 17px 18px}
+.rd .hd{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.rd .hd span{font-size:11px;letter-spacing:.14em;color:var(--ink-soft)}
+.rd .hd b{font-size:11px;font-weight:500;letter-spacing:.1em;color:var(--ok)}
+.rd .hd b.w{color:var(--warn)}
+.rd .val{margin-top:10px;font-size:22px;letter-spacing:.02em;font-variant-numeric:tabular-nums}
+.rd .val small{font-size:12px;color:var(--ink-soft);letter-spacing:.06em;margin-left:4px}
+.rd .why{margin-top:9px;font-size:12px;line-height:1.85;color:#5b5750}
+.rd .how{margin-top:9px;font-size:11.5px;line-height:1.85;color:#a8a49b}
+.rd .how b{color:var(--accent);font-weight:500}
+
+.lesson{
+  margin-top:30px;background:#fff;border:1px solid var(--line);border-left:3px solid var(--accent);
+  border-radius:12px;padding:22px 24px 24px;
+}
+.lesson .tag{font-size:10.5px;letter-spacing:.2em;color:var(--accent)}
+.lesson h3{margin-top:12px;font-size:15px;font-weight:500;letter-spacing:.1em}
+.lesson p{margin-top:11px;font-size:13px;line-height:2.05;color:#4c4841}
+.lesson p + p{margin-top:9px}
+
+.warn-note{max-width:1180px;margin:26px auto 0;padding:0 32px;font-size:11.5px;line-height:2;color:#a8a49b}
+.warn-note b{color:var(--ink-soft);font-weight:500}
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <a href="#">← 返回首页</a>
+  <div class="logo">By deer ｜ see 小鹿</div>
+  <a href="find.html">找照片 →</a>
+</div>
+
+<div class="head">
+  <h1>照片体检</h1>
+  <p>
+    把一张照片拖进来，它会告诉你<b>这一张歪了几度、亮部爆了多少、糊没糊、偏冷还是偏暖、主体落在哪</b>，
+    然后<b>顺手讲一个你这张最该知道的摄影知识点</b>。<br>
+    <span class="hi">说清楚：数字是算出来的，不是神经网络猜的</span>——
+    歪了几度、爆了多少，算法比任何模型都准。<b>「讲」这一部分是我（AI）写好的讲解</b>，
+    它会按你这一张的数字，挑最该讲的那几条给你。
+  </p>
+</div>
+
+<div class="dropzone">
+  <div class="drop" id="drop">
+    <b>拖一张照片进来</b>
+    <span>或点击选择文件 · 也可以 Ctrl+V 粘贴　·　全部在你自己的浏览器里算，不上传</span>
+    <div class="demos" id="demos"></div>
+  </div>
+</div>
+
+<div class="sheet" id="sheet">
+  <div class="top">
+    <img id="shot" alt="">
+    <div class="summary">
+      <h2 id="moodTitle"></h2>
+      <div class="mood" id="moodText"></div>
+      <div class="sub">这张照片的"气质"—— 由下面的读数组合得出</div>
+      <div class="palette" id="palette"></div>
+    </div>
+  </div>
+  <div class="readings" id="readings"></div>
+  <div class="lesson" id="lesson"></div>
+</div>
+
+<div class="warn-note">
+  <b>这一页是"量"的部分：</b>曝光、对比、锐度、色偏、水平、构图位置、影调分布、主色调 —— 全部本地计算，秒出。<br>
+  <b>下面演示的 6 张是程序生成的测试图</b>，不是真实照片；把它们拖进来主要是为了让你看见报告长什么样。真要看出准不准，得用你自己的片子。
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ================= 演示图 ================= */
+var DEMOS = [
+  { src: "demo/d1.jpg", n: "黎明" },
+  { src: "demo/d2.jpg", n: "雾" },
+  { src: "demo/d3.jpg", n: "夜" },
+  { src: "demo/d4.jpg", n: "灰调" },
+  { src: "demo/d5.jpg", n: "棕褐" },
+  { src: "demo/d6.jpg", n: "青蓝" }
+];
+
+/* ================= 分析 ================= */
+function analyze(img) {
+  var W = 360, H = Math.max(2, Math.round(img.height / img.width * W));
+  var cv = document.createElement("canvas");
+  cv.width = W; cv.height = H;
+  var c = cv.getContext("2d");
+  c.drawImage(img, 0, 0, W, H);
+  var d = c.getImageData(0, 0, W, H).data;
+  var N = W * H;
+  var lum = new Float32Array(N);
+  var p, i;
+  var sumR = 0, sumG = 0, sumB = 0, sumL = 0, s2 = 0;
+  var hi = 0, lo = 0;
+  for (i = 0, p = 0; i < N; i++, p += 4) {
+    var r = d[p], g = d[p + 1], b = d[p + 2];
+    var L = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    lum[i] = L;
+    sumR += r; sumG += g; sumB += b; sumL += L; s2 += L * L;
+    if (L >= 250) hi++; else if (L <= 4) lo++;
+  }
+  var meanL = sumL / N;
+  var sd = Math.sqrt(Math.max(0, s2 / N - meanL * meanL));
+
+  /* 锐度：拉普拉斯方差 */
+  var ls = 0, ls2 = 0, lc = 0;
+  for (var y = 1; y < H - 1; y++) {
+    for (var x = 1; x < W - 1; x++) {
+      i = y * W + x;
+      var v = 4 * lum[i] - lum[i - 1] - lum[i + 1] - lum[i - W] - lum[i + W];
+      ls += v; ls2 += v * v; lc++;
+    }
+  }
+  var lvar = Math.max(0, ls2 / lc - (ls / lc) * (ls / lc));
+
+  /* 边缘方向：找横向线（梯度方向 +90 = 边缘方向） */
+  var bins = new Float32Array(180);
+  for (y = 1; y < H - 1; y++) {
+    for (x = 1; x < W - 1; x++) {
+      var a0 = (y - 1) * W + x, a1 = y * W + x, a2 = (y + 1) * W + x;
+      var gx = (lum[a0 + 1] + 2 * lum[a1 + 1] + lum[a2 + 1]) - (lum[a0 - 1] + 2 * lum[a1 - 1] + lum[a2 - 1]);
+      var gy = (lum[a2 - 1] + 2 * lum[a2] + lum[a2 + 1]) - (lum[a0 - 1] + 2 * lum[a0] + lum[a0 + 1]);
+      var m = Math.abs(gx) + Math.abs(gy);
+      if (m < 110) continue;
+      var e = Math.atan2(gy, gx) * 180 / Math.PI + 90;
+      while (e < 0) e += 180;
+      while (e >= 180) e -= 180;
+      bins[Math.round(e) % 180] += m;
+    }
+  }
+  /* 平滑后找峰 */
+  var sm = new Float32Array(180);
+  for (i = 0; i < 180; i++) {
+    var acc = 0;
+    for (var k = -3; k <= 3; k++) acc += bins[(i + k + 180) % 180];
+    sm[i] = acc;
+  }
+  var peak = 0, tot = 0;
+  for (i = 0; i < 180; i++) { tot += bins[i]; if (sm[i] > sm[peak]) peak = i; }
+  var tilt = peak > 90 ? peak - 180 : peak;   // 边缘方向 → 相对水平的倾角
+  var lineStrength = tot > 0 ? sm[peak] / tot : 0;
+
+  /* 主体位置：显著性代理 = 饱和度 + 亮度偏离 */
+  var sx = 0, sy = 0, sw = 0;
+  for (y = 0; y < H; y += 2) {
+    for (x = 0; x < W; x += 2) {
+      i = y * W + x; p = i * 4;
+      var rr = d[p], gg = d[p + 1], bb = d[p + 2];
+      var mx = Math.max(rr, gg, bb), mn = Math.min(rr, gg, bb);
+      var sat = (mx - mn) / 255;
+      var dev = Math.abs(lum[i] - meanL) / 255;
+      var w = sat * 0.55 + dev * 0.95 + 0.04;
+      sx += x * w; sy += y * w; sw += w;
+    }
+  }
+  var cx = sx / sw / W, cy = sy / sw / H;
+
+  /* 主色调：简易 k-means，k=5 */
+  var samp = [];
+  for (i = 0; i < N; i += 5) { p = i * 4; samp.push([d[p], d[p + 1], d[p + 2]]); }
+  var K = 5, cen = [];
+  for (i = 0; i < K; i++) cen.push(samp[Math.floor(samp.length * (i + 0.5) / K)].slice());
+  for (var it = 0; it < 9; it++) {
+    var sum = [], cnt = [];
+    for (i = 0; i < K; i++) { sum.push([0, 0, 0]); cnt.push(0); }
+    for (i = 0; i < samp.length; i++) {
+      var best = 0, bd = 1e9;
+      for (var j = 0; j < K; j++) {
+        var dr = samp[i][0] - cen[j][0], dg = samp[i][1] - cen[j][1], db = samp[i][2] - cen[j][2];
+        var dd = dr * dr + dg * dg + db * db;
+        if (dd < bd) { bd = dd; best = j; }
+      }
+      sum[best][0] += samp[i][0]; sum[best][1] += samp[i][1]; sum[best][2] += samp[i][2]; cnt[best]++;
+    }
+    for (j = 0; j < K; j++) if (cnt[j]) cen[j] = [sum[j][0] / cnt[j], sum[j][1] / cnt[j], sum[j][2] / cnt[j]];
+  }
+  var palette = cen.map(function (cc, idx) { return { rgb: cc, pct: 0 }; });
+  for (i = 0; i < samp.length; i++) {
+    var b2 = 0, bd2 = 1e9;
+    for (j = 0; j < K; j++) {
+      var q1 = samp[i][0] - cen[j][0], q2 = samp[i][1] - cen[j][1], q3 = samp[i][2] - cen[j][2];
+      var q = q1 * q1 + q2 * q2 + q3 * q3;
+      if (q < bd2) { bd2 = q; b2 = j; }
+    }
+    palette[b2].pct++;
+  }
+  palette.forEach(function (o) { o.pct = o.pct / samp.length; });
+  palette.sort(function (a, b) { return b.pct - a.pct; });
+
+  return {
+    W: W, H: H, ratio: img.width / img.height,
+    meanL: meanL, sd: sd,
+    clipHigh: hi / N * 100, clipLow: lo / N * 100,
+    lvar: lvar,
+    tilt: tilt, lineStrength: lineStrength,
+    cx: cx, cy: cy,
+    meanR: sumR / N, meanG: sumG / N, meanB: sumB / N,
+    palette: palette
+  };
+}
+
+/* ================= 讲解：AI 写好的知识库 ================= */
+function hex(rgb) {
+  function h(v) { v = Math.max(0, Math.min(255, Math.round(v))); return (v < 16 ? "0" : "") + v.toString(16); }
+  return "#" + h(rgb[0]) + h(rgb[1]) + h(rgb[2]);
+}
+
+function buildReadings(m) {
+  var R = [];
+
+  /* 曝光 */
+  var lumWord = m.meanL > 170 ? "高调" : (m.meanL < 85 ? "低调" : "中间调");
+  var expWarn = m.clipHigh > 1.5 || m.clipLow > 2.5;
+  R.push({
+    t: "曝光", v: m.meanL.toFixed(0), u: "/255 · " + lumWord,
+    warn: expWarn,
+    why: "整张照片的平均亮度。亮部到纯白的像素 <b>" + m.clipHigh.toFixed(2) + "%</b>，死黑到没有细节的 <b>" + m.clipLow.toFixed(2) + "%</b>。",
+    how: m.clipHigh > 1.5
+      ? "亮部已经溢出——数字上就是「再也拉不回来」的白。拍的时候宁可欠半档到一档，回家再提亮，这就是<b>向右曝光</b>的用法。"
+      : (m.clipLow > 2.5
+        ? "暗部压死了。如果不是刻意追求纯黑，下次在阴影里多留一点光——暗部有细节，画面才有层次。"
+        : "亮暗都在可用的范围里，没有死白也没有死黑，这是很健康的一张。")
+  });
+
+  /* 对比 */
+  R.push({
+    t: "反差", v: m.sd.toFixed(1), u: "标准差",
+    warn: m.sd < 26 || m.sd > 78,
+    why: "标准差越大，明暗拉得越开。",
+    how: m.sd < 26
+      ? "反差偏平 —— 通常是阴天、雾天或者隔着玻璃拍的。这种底子后期加对比很容易「脏」，不如<b>干脆顺着它做成柔调</b>，别硬拉。"
+      : (m.sd > 78
+        ? "反差很大，白的白黑的黑，很有力。代价是中间调被挤掉了——注意肤色和纹理容易变生硬。"
+        : "反差不温不火，属于最耐看的那一档。")
+  });
+
+  /* 锐度 */
+  var sharp = m.lvar > 260 ? "很锐" : (m.lvar > 90 ? "正常" : "偏软");
+  R.push({
+    t: "锐度", v: m.lvar.toFixed(0), u: "拉普拉斯方差 · " + sharp,
+    warn: m.lvar <= 90,
+    why: "边缘的清晰程度。这一项<b>受拍什么影响极大</b>——拍雾拍水天生就低，拍砖墙天生就高，只跟自己比才有意义。",
+    how: m.lvar <= 90
+      ? "偏软。可能是没端稳（一般安全快门是焦距的倒数，50mm 就至少 1/50）、也可能是对焦没咬住、或者光圈开太大景深太浅。"
+      : "对焦和持机都站得住。"
+  });
+
+  /* 色偏 */
+  var rb = m.meanR - m.meanB;
+  var cast = Math.abs(rb) < 6 ? "基本中性" : (rb > 0 ? "偏暖" : "偏冷");
+  R.push({
+    t: "色偏", v: (rb > 0 ? "+" : "") + rb.toFixed(0), u: "红-蓝差 · " + cast,
+    warn: Math.abs(rb) > 22,
+    why: "画面的红蓝平衡。正数偏暖（橙黄），负数偏冷（青蓝）。",
+    how: Math.abs(rb) > 22
+      ? (rb > 0
+        ? "整体偏暖。如果是黄昏、白炽灯，这是对的；如果是正午拍的，说明<b>白平衡被环境带跑了</b>——灰卡或后期校一下会干净很多。"
+        : "整体偏冷。晴天阴影里、傍晚之后很容易这样。这是风格还是失误，要看你想要什么。")
+      : "红蓝基本对齐，颜色不会让人觉得「脏」。"
+  });
+
+  /* 水平 */
+  if (m.lineStrength > 0.05 && Math.abs(m.tilt) <= 30) {
+    R.push({
+      t: "水平", v: (m.tilt > 0 ? "+" : "") + m.tilt.toFixed(1), u: "度",
+      warn: Math.abs(m.tilt) > 1.5,
+      why: "照片里最强的横向线条相对水平偏了多少。海平线、地平线、墙脚线都会被算进来。",
+      how: Math.abs(m.tilt) > 1.5
+        ? (m.tilt > 0 ? "右边偏高。" : "左边偏高。") + "<b>超过 1.5° 眼睛就会觉得别扭</b>，尤其有明确水平线的照片。后期一键拉直就行。"
+        : "很正。有水平线的照片，这一项守住，质感立刻不一样。"
+    });
+  }
+
+  /* 构图位置 */
+  var hx = m.cx < 0.5 ? "偏左" : "偏右";
+  var hy = m.cy < 0.5 ? "偏上" : "偏下";
+  var nearCenter = Math.abs(m.cx - 0.5) < 0.12 && Math.abs(m.cy - 0.5) < 0.12;
+  var nearThird = !nearCenter && (
+    Math.min(Math.abs(m.cx - 1 / 3), Math.abs(m.cx - 2 / 3)) < 0.09 ||
+    Math.min(Math.abs(m.cy - 1 / 3), Math.abs(m.cy - 2 / 3)) < 0.09
+  );
+  R.push({
+    t: "主体位置", v: Math.round(m.cx * 100) + "% / " + Math.round(m.cy * 100) + "%", u: "画面宽高",
+    warn: !nearCenter && !nearThird,
+    why: "把「颜色最浓、明暗反差最大」的部分加权平均，得到的重心。（这是代理指标，不是人脸识别。）",
+    how: nearCenter
+      ? "落在正中。居中是最稳的，也是最容易「平」的——想稳就用它，想有张力就往三分线上挪。"
+      : (nearThird
+        ? "很接近三分位。" + hx + hy + "，这是最舒服的位置之一。"
+        : "落得比较" + hx + hy + "，离中心和三分的交叉点都远。如果这是刻意的（比如大量留白），很好；如果不是，可以试试裁一下。")
+  });
+
+  /* 影调分布 */
+  var highPct = 0, lowPct = 0;
+  highPct = m.meanL > 0 ? Math.min(99, m.clipHigh + (m.meanL - 128) / 4) : 0;
+  lowPct = m.meanL > 0 ? Math.min(99, m.clipLow + (128 - m.meanL) / 4) : 0;
+  R.push({
+    t: "影调", v: lumWord, u: "中间调占 " + (100 - Math.max(0, highPct) - Math.max(0, lowPct)).toFixed(0) + "%",
+    warn: false,
+    why: "整张照片是亮调、中间调还是暗调。这不是好坏问题，是<b>「这一张想说什么」</b>的问题。",
+    how: lumWord === "高调"
+      ? "偏亮。亮调适合轻盈、通透、安静的东西。注意别让亮部堆成一片白，要有小的暗块压住。"
+      : (lumWord === "低调"
+        ? "偏暗。暗调天生有分量和神秘感。记得留一点点高光当「出口」，否则会闷。"
+        : "中间调。最百搭，也最不容易出彩——需要靠颜色或构图找记忆点。")
+  });
+
+  return { list: R, lumWord: lumWord, nearCenter: nearCenter, nearThird: nearThird };
+}
+
+/* 挑一条最该讲的：优先讲"注意"的项，全部正常就讲影调 */
+function pickLesson(m, b) {
+  var warn = b.list.filter(function (r) { return r.warn; });
+  if (warn.length) {
+    var r = warn[0];
+    return {
+      tag: "这一张最该知道的一件事",
+      h: r.t + " · " + r.why.replace(/<\/?b>/g, ""),
+      ps: [r.how.replace(/<\/?b>/g, "")]
+    };
+  }
+  return {
+    tag: "这一张最该知道的一件事",
+    h: "全部指标都站得住",
+    ps: [
+      "曝光、反差、锐度、色偏、水平、位置都在健康范围里。这说明你的基本动作已经很稳了。",
+      "到了这一步，剩下的问题不再是「拍对」，而是「拍谁」。技术及格之后，照片的差别全在选择：什么时候按快门、把什么放进框里、把什么挡在框外。这也是为什么好照片很少是「什么都拍得好」的人拍的，而是「只拍一样东西」的人拍的。"
+    ]
+  };
+}
+
+/* ================= 渲染 ================= */
+function render(img) {
+  var m = analyze(img);
+  var b = buildReadings(m);
+  var L = pickLesson(m, b);
+
+  document.getElementById("shot").src = img.src;
+  document.getElementById("moodTitle").textContent =
+    m.meanL > 170 ? "轻、亮、往上的" : (m.meanL < 85 ? "沉、暗、往里收的" : "平、稳、中间地带的");
+  document.getElementById("moodText").textContent =
+    "这是一张" + (m.sd > 60 ? "反差很大" : (m.sd < 30 ? "反差很平" : "反差适中")) + "的" +
+    (m.meanL > 170 ? "亮调" : (m.meanL < 85 ? "暗调" : "中间调")) + "照片，" +
+    (Math.abs(m.meanR - m.meanB) < 6 ? "颜色基本中性" : (m.meanR > m.meanB ? "整体偏暖" : "整体偏冷")) + "。" +
+    (m.lineStrength > 0.05 && Math.abs(m.tilt) > 1.5 ? "地平线是斜的，" : "") +
+    (b.nearCenter ? "主体压在正中。" : (b.nearThird ? "主体很接近三分位。" : "主体落在偏" + (m.cx < 0.5 ? "左" : "右") + "偏" + (m.cy < 0.5 ? "上" : "下") + "的位置。"));
+
+  var pal = document.getElementById("palette");
+  pal.innerHTML = "";
+  m.palette.forEach(function (o) {
+    var el = document.createElement("div");
+    el.style.background = hex(o.rgb);
+    el.textContent = Math.round(o.pct * 100) + "%";
+    if (o.pct > 0.16) el.style.color = (o.rgb[0] * 0.299 + o.rgb[1] * 0.587 + o.rgb[2] * 0.114 > 150) ? "#6b675f" : "rgba(255,255,255,.86)";
+    pal.appendChild(el);
+  });
+
+  var host = document.getElementById("readings");
+  host.innerHTML = "";
+  b.list.forEach(function (r) {
+    var el = document.createElement("div");
+    el.className = "rd";
+    el.innerHTML =
+      '<div class="hd"><span>' + r.t + '</span><b class="' + (r.warn ? "w" : "") + '">' +
+      (r.warn ? "注意" : "正常") + '</b></div>' +
+      '<div class="val">' + r.v + '<small>' + r.u + '</small></div>' +
+      '<div class="why">' + r.why + '</div>' +
+      '<div class="how">' + r.how + '</div>';
+    host.appendChild(el);
+  });
+
+  var les = document.getElementById("lesson");
+  les.innerHTML = '<div class="tag">' + L.tag + '</div><h3>' + L.h + '</h3>' +
+    L.ps.map(function (t) { return "<p>" + t + "</p>"; }).join("");
+
+  document.getElementById("sheet").classList.add("on");
+  document.getElementById("sheet").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+/* ================= 交互 ================= */
+function loadSrc(src) {
+  var im = new Image();
+  im.onload = function () { render(im); };
+  im.onerror = function () { alert("这张图打不开"); };
+  im.src = src;
+}
+function loadFile(f) {
+  if (!f || !/^image\//.test(f.type)) return;
+  loadSrc(URL.createObjectURL(f));
+}
+(function () {
+  var drop = document.getElementById("drop");
+  drop.addEventListener("click", function (e) {
+    if (e.target.closest(".demos")) return;
+    var inp = document.createElement("input");
+    inp.type = "file"; inp.accept = "image/*";
+    inp.addEventListener("change", function () { loadFile(inp.files[0]); });
+    inp.click();
+  });
+  ["dragenter", "dragover"].forEach(function (t) {
+    document.addEventListener(t, function (e) { e.preventDefault(); drop.classList.add("now"); });
+  });
+  ["dragleave", "drop"].forEach(function (t) {
+    document.addEventListener(t, function (e) { e.preventDefault(); drop.classList.remove("now"); });
+  });
+  document.addEventListener("drop", function (e) {
+    var dt = e.dataTransfer;
+    if (dt && dt.files && dt.files.length) loadFile(dt.files[0]);
+  });
+  document.addEventListener("paste", function (e) {
+    var items = (e.clipboardData || {}).items || [];
+    for (var i = 0; i < items.length; i++) {
+      if (items[i].type && items[i].type.indexOf("image") === 0) {
+        loadFile(items[i].getAsFile()); e.preventDefault(); return;
+      }
+    }
+  });
+  var row = document.getElementById("demos");
+  DEMOS.forEach(function (o) {
+    var b = document.createElement("button");
+    b.textContent = o.n;
+    b.addEventListener("click", function (e) { e.stopPropagation(); loadSrc(o.src); });
+    row.appendChild(b);
+  });
+})();
+
+try {
+  var p0 = new URLSearchParams(location.search).get("p");
+  if (p0) loadSrc(p0);
+} catch (e) {}
+})();
+</script>
+</body>
+</html>
