@@ -12,6 +12,13 @@ import os, re, io
 BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC = os.path.join(BASE, "series.html")
 
+# ★ "从详情页过来"的标记脚本。单独放一个常量、用 {fromSubScript} 占位 ——
+#   不能直接把带 {} 的 JS 写进 TPL：.format() 会把花括号当成占位符报 KeyError
+#   （2026-09-30 踩过：series.html 被写成了 0 字节）。
+FROM_SUB_SCRIPT = ('<script>/* ★ 标记"刚才是从详情页这边走的"：首页读到它就还原滚动位置/筛选/高亮。'
+                   '写在 HTML 里而不是 series.js 里 —— 就算下面的 JS 整个崩了，这个标记也已经生效 */'
+                   'try{sessionStorage.setItem("bydeer:fromSub","1");}catch(e){}</script>')
+
 TPL = """<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -22,6 +29,8 @@ TPL = """<!DOCTYPE html>
 <link rel="stylesheet" href="css/style.css?v={ver}">
 </head>
 <body class="series-page">
+
+{fromSubScript}
 
 <nav class="snav">
   <a class="snav-back" href="index.html">← 返回</a>
@@ -108,7 +117,7 @@ def main():
 
     # 1) 通用 series.html
     with io.open(SRC, "w", encoding="utf-8") as f:
-        f.write(TPL.format(title="系列", secname="", desc="", slug="", ver=ver))
+        f.write(TPL.format(title="系列", secname="", desc="", slug="", ver=ver, fromSubScript=FROM_SUB_SCRIPT))
     print("生成:", SRC)
 
     # 2) 每个系列一个独立页
@@ -117,7 +126,7 @@ def main():
         p = os.path.join(BASE, f'{s["slug"]}.html')
         with io.open(p, "w", encoding="utf-8") as f:
             f.write(TPL.format(title=s["title"], secname=name, desc=desc,
-                               slug=s["slug"], ver=ver))
+                               slug=s["slug"], ver=ver, fromSubScript=FROM_SUB_SCRIPT))
         print("生成:", p)
 
     print("\n共 %d 个系列页" % len(series))

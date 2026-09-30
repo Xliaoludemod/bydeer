@@ -112,6 +112,13 @@ const grid = $("#sGrid");
 const cards = [];                  /* { el, ar } —— ar = 宽/高，同时当 flex-grow 用 */
 let arLeft = 0;                    /* 还有几张的比例没读到 */
 let firstLaid = false;             /* 第一版分行排过没有 */
+/* ★ relayoutTimer 必须声明在下面的 forEach **之前**（2026-09-30 修的大 bug）：
+   图片**有缓存**时（同一个系列看第二次），`im.complete` 一开始就是 true，
+   循环里第一张就把 firstLaid 置真、第二张立刻调 relayoutSoon() ——
+   那时 `let relayoutTimer` 还没执行到，直接 ReferenceError 整个脚本崩掉，
+   后面的「← 返回」监听器全都没挂上 → 点返回变裸跳 index.html，
+   「回到原位 / 回到专属片柜」全失效（用户报的正是这个）。冷缓存时永不触发，所以一直没发现。 */
+let relayoutTimer = null;
 
 series.photos.forEach((p, i) => {
   const fig = document.createElement("figure");
@@ -208,8 +215,8 @@ function layout() {
   flush(true);
 }
 
-/* 图片陆续加载完 → 比例陆续修正 → 合并成一次重排，避免抖 */
-let relayoutTimer = null;
+/* 图片陆续加载完 → 比例陆续修正 → 合并成一次重排，避免抖
+   （⚠️ relayoutTimer 的声明在上面 forEach 之前，原因见那里的注释） */
 function relayoutSoon() {
   clearTimeout(relayoutTimer);
   relayoutTimer = setTimeout(layout, 100);

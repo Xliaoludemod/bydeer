@@ -1,5 +1,12 @@
 /* ========== 渲染与交互 ========== */
 
+/* ★ 在 Console 里报一声自己是什么版本 —— 用来确认"浏览器里跑的是不是新代码"。
+   版本号直接从本脚本自己的地址（js/main.js?v=xxx）里取，不用手动同步。 */
+try {
+  console.log("bydeer · 资源版本 " +
+    ((document.currentScript && document.currentScript.src.match(/v=([\w.-]+)/) || [])[1] || "(未知)"));
+} catch (e) {}
+
 const $ = (s) => document.querySelector(s);
 
 /* 缩略图约定：同目录下的 th/ 子文件夹、同名文件。
@@ -270,6 +277,24 @@ indexList.addEventListener("mouseleave", () => {
   startRotate();
 });
 
+/* ---------- 点亮 / 取消点亮某个分区（还原状态用，效果和 hover 一致） ---------- */
+function applySectionHighlight(key) {
+  const item = [...document.querySelectorAll(".index-item")].find((el) => el.dataset.sec === key);
+  if (!item) return false;
+  indexList.classList.add("on");
+  document.querySelectorAll(".index-item").forEach((el) => el.classList.remove("active"));
+  item.classList.add("active");
+  const s = SITE.sections.find((x) => x.key === key);
+  if (s) showSectionPreview(s);          /* 右侧换回它的展示图（没配 preview 就保持默认那张） */
+  return true;
+}
+function clearSectionHighlight() {
+  indexList.classList.remove("on");
+  document.querySelectorAll(".index-item").forEach((el) => el.classList.remove("active"));
+  stopSecRotate();
+  startRotate();
+}
+
 /* 点了配了 cabinet 的分区 → 进它的「专属片柜」页；没配的点了没反应 */
 indexList.addEventListener("click", (e) => {
   const item = e.target.closest(".index-item");
@@ -417,25 +442,50 @@ function closeLb() { lb.classList.remove("open"); document.body.style.overflow =
      关掉 scrollRestoration，改成"只在返回/刷新时"恢复 —— 正常点链接进首页仍然从头开始） */
 const SCROLL_KEY = "bydeer:indexScroll";
 const RESTORE_KEY = "bydeer:restoreScroll";
+const SEC_KEY = "bydeer:indexSec";          /* 第二区域：鼠标最后停在哪个分区上 */
+const FILTER_KEY = "bydeer:indexFilter";    /* 第三区域：选了哪个筛选标签 */
+const FROM_SUB_KEY = "bydeer:fromSub";      /* 详情页 HTML 里留下的"我刚从那边过来" */
 
 if ("scrollRestoration" in history) history.scrollRestoration = "manual";
 
+/* ★ 2026-09-30：光还原滚动位置不够 —— 用户要的是「回到进去之前的样子」。
+   所以离开首页时把**界面状态**也一起存下：第二区域鼠标停在哪一项、第三区域选了哪个筛选。
+   （用户原话：「进入专属片柜之后再点回到主页，我希望是回到进去之前的样子；
+     从片柜进去同理，也回到进去之前的时候」） */
 window.addEventListener("pagehide", () => {
-  try { sessionStorage.setItem(SCROLL_KEY, String(window.scrollY || window.pageYOffset || 0)); } catch (e) {}
+  try {
+    sessionStorage.setItem(SCROLL_KEY, String(window.scrollY || window.pageYOffset || 0));
+    const act = document.querySelector(".index-item.active");
+    if (act && act.dataset.sec) sessionStorage.setItem(SEC_KEY, act.dataset.sec);
+    else sessionStorage.removeItem(SEC_KEY);          /* 离开时鼠标没停在分区上 → 清掉，别留旧的 */
+    sessionStorage.setItem(FILTER_KEY, activeFilter);
+  } catch (e) {}
 });
 
-function restoreScroll() {
+/* 这次载入算不算「从详情页回来」？返回原位 + 还原界面状态都靠它判断。
+   三个信号，命中任意一个就算：
+   ① 详情页的「← 返回」点过了（bydeer:restoreScroll）
+   ② 详情页 HTML 里写下的 bydeer:fromSub —— ★ 写在 HTML 里，那页的 JS 就算全崩了它也在
+   ③ 浏览器前进/后退/刷新
+   只有「正常点链接进首页」（navigate）才从头开始。 */
+function isReturning() {
+  try {
+    if (sessionStorage.getItem(RESTORE_KEY) === "1") return true;
+    if (sessionStorage.getItem(FROM_SUB_KEY) === "1") return true;
+    const nav = performance.getEntriesByType && performance.getEntriesByType("navigation")[0];
+    return !!(nav && nav.type && nav.type !== "navigate");
+  } catch (e) {
+    return false;
+  }
+}
+
+function restoreScroll(returning) {
   let y = null;
   try {
-    if (sessionStorage.getItem(RESTORE_KEY)) {
-      /* 详情页的「← 返回」点过了 → 明确要求回到原位 */
-      sessionStorage.removeItem(RESTORE_KEY);
+    if (returning) {
+      /* 标记用完就撕掉 */
+      if (sessionStorage.getItem(RESTORE_KEY)) sessionStorage.removeItem(RESTORE_KEY);
       y = parseInt(sessionStorage.getItem(SCROLL_KEY) || "", 10);
-    } else {
-      /* 浏览器前进/后退 → 恢复；正常点链接进来（navigate）→ 不恢复，从头开始 */
-      const nav = performance.getEntriesByType && performance.getEntriesByType("navigation")[0];
-      const type = nav ? nav.type : "";
-      if (type && type !== "navigate") y = parseInt(sessionStorage.getItem(SCROLL_KEY) || "", 10);
     }
   } catch (e) {}
   if (!y || isNaN(y) || y <= 0) return;
@@ -455,8 +505,67 @@ document.querySelectorAll(".reveal").forEach((el) => io.observe(el));
 
 buildSlides();
 
+/* ---------- ★ 把「进去之前的样子」摆回来 ----------
+   用户 2026-09-30：「进入专属片柜之后再点回到主页，我希望是回到进去之前的样子；
+   从片柜进去同理，也回到进去之前的时候」。
+   光还原滚动位置不够，还要还原界面状态：
+     ① 第三区域（片柜）：上次选中的那个筛选标签
+     ② 第二区域：鼠标停在哪一项（高亮 + 右侧展示图）
+   ⚠️ 只在「从详情页回来」时做 —— 正常点链接进首页要一切从头开始。 */
+const RETURNING = isReturning();
+let fromSubSeen = "?";
+try { fromSubSeen = String(sessionStorage.getItem(FROM_SUB_KEY)); } catch (e) {}
+try { sessionStorage.removeItem(FROM_SUB_KEY); } catch (e) {}   /* 一次性标记，读完就清 */
+
+if (RETURNING) {
+  /* ① 筛选标签 */
+  let f = null;
+  try { f = sessionStorage.getItem(FILTER_KEY); } catch (e) {}
+  if (f && f !== activeFilter && FILTERS.some((x) => x.key === f)) {
+    activeFilter = f;
+    [...filterRow.children].forEach((b, i) => b.classList.toggle("on", FILTERS[i].key === f));
+    renderGrid();
+  }
+  /* ② 第二区域的高亮 + 右侧展示图 */
+  let k = null;
+  try { k = sessionStorage.getItem(SEC_KEY); } catch (e) {}
+  if (k && applySectionHighlight(k)) {
+    /* 还原出来的高亮先"锁"着：鼠标一直不动，说明它确实还停在那儿；
+       鼠标一动（哪怕 1px）就立刻按真实位置重新判定，免得鼠标早移开了这里还亮着。 */
+    const onFirstMove = (e) => {
+      document.removeEventListener("mousemove", onFirstMove, true);
+      const el = document.elementFromPoint(e.clientX, e.clientY);
+      const over = el && el.closest ? el.closest(".index-item") : null;
+      if (over && over.dataset.sec) applySectionHighlight(over.dataset.sec);
+      else clearSectionHighlight();
+    };
+    document.addEventListener("mousemove", onFirstMove, true);
+  }
+}
+
 /* 最后再摆滚动位置：等卡片都渲染完，页面高度稳定了才恢复 */
-restoreScroll();
+restoreScroll(RETURNING);
+
+/* ---------- 临时诊断（问题解决后整段删掉）----------
+   明明有存档的位置、这次却没走还原 → 左下角亮一小条写清原因。
+   正常第一次进站没有存档，不会出现这条。 */
+(function () {
+  let saved = null;
+  try { saved = sessionStorage.getItem(SCROLL_KEY); } catch (e) {}
+  if (saved === null || saved === "" || RETURNING) return;
+  const navType = (function () {
+    try { const n = performance.getEntriesByType && performance.getEntriesByType("navigation")[0]; return n ? n.type : "(取不到)"; }
+    catch (e) { return "?"; }
+  })();
+  const b = document.createElement("div");
+  b.style.cssText = "position:fixed;left:10px;bottom:10px;z-index:9999;background:#fff;color:#a33;" +
+    "font:12px/1.5 system-ui,sans-serif;padding:5px 10px;border:1px solid #e0b4b4;border-radius:6px;opacity:.92";
+  b.textContent = "诊断：有存档位置(" + saved + ")但这次没还原 —— fromSub=" + fromSubSeen +
+    "，导航类型=" + navType + "，代码版本=" +
+    ((document.currentScript && document.currentScript.src.match(/v=([\w.-]+)/) || [])[1] || "(未知)");
+  document.body.appendChild(b);
+  setTimeout(function () { if (b.parentNode) b.parentNode.removeChild(b); }, 30000);
+})();
 
 /* ---------- 图片防盗用（只是门槛，不是锁） ----------
    挡住「右键 → 另存为图片」和「拖拽到桌面」。
