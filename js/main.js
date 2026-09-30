@@ -513,8 +513,6 @@ buildSlides();
      ② 第二区域：鼠标停在哪一项（高亮 + 右侧展示图）
    ⚠️ 只在「从详情页回来」时做 —— 正常点链接进首页要一切从头开始。 */
 const RETURNING = isReturning();
-let fromSubSeen = "?";
-try { fromSubSeen = String(sessionStorage.getItem(FROM_SUB_KEY)); } catch (e) {}
 try { sessionStorage.removeItem(FROM_SUB_KEY); } catch (e) {}   /* 一次性标记，读完就清 */
 
 if (RETURNING) {
@@ -545,27 +543,6 @@ if (RETURNING) {
 
 /* 最后再摆滚动位置：等卡片都渲染完，页面高度稳定了才恢复 */
 restoreScroll(RETURNING);
-
-/* ---------- 临时诊断（问题解决后整段删掉）----------
-   明明有存档的位置、这次却没走还原 → 左下角亮一小条写清原因。
-   正常第一次进站没有存档，不会出现这条。 */
-(function () {
-  let saved = null;
-  try { saved = sessionStorage.getItem(SCROLL_KEY); } catch (e) {}
-  if (saved === null || saved === "" || RETURNING) return;
-  const navType = (function () {
-    try { const n = performance.getEntriesByType && performance.getEntriesByType("navigation")[0]; return n ? n.type : "(取不到)"; }
-    catch (e) { return "?"; }
-  })();
-  const b = document.createElement("div");
-  b.style.cssText = "position:fixed;left:10px;bottom:10px;z-index:9999;background:#fff;color:#a33;" +
-    "font:12px/1.5 system-ui,sans-serif;padding:5px 10px;border:1px solid #e0b4b4;border-radius:6px;opacity:.92";
-  b.textContent = "诊断：有存档位置(" + saved + ")但这次没还原 —— fromSub=" + fromSubSeen +
-    "，导航类型=" + navType + "，代码版本=" +
-    ((document.currentScript && document.currentScript.src.match(/v=([\w.-]+)/) || [])[1] || "(未知)");
-  document.body.appendChild(b);
-  setTimeout(function () { if (b.parentNode) b.parentNode.removeChild(b); }, 30000);
-})();
 
 /* ---------- 图片防盗用（只是门槛，不是锁） ----------
    挡住「右键 → 另存为图片」和「拖拽到桌面」。
