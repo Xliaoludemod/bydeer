@@ -92,7 +92,7 @@ img {
 }
 .nav-social a:hover { transform: translateY(-2px); }
 
-/* 鼠标停在图标上弹出的小气泡（比如微信号）
+/* 鼠标停在图标上弹出的小气泡（比如抖音号）
    用右对齐而不是居中：图标都在导航栏右端，居中会顶出屏幕右边 */
 .nav-tip {
   position: absolute; top: calc(100% + 9px); right: -2px; left: auto;

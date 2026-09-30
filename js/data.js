@@ -7,7 +7,7 @@ const SITE = {
   /* 社交账号
      icon 填图片文件名（放在 icons/ 文件夹），留空则退回到显示名字的第一个字。
      图标已经放好四个：
-       wechat.svg 微信 · xiaohongshu.svg 小红书 · douyin.svg 抖音 · person.svg 小人
+       xiaohongshu.svg 小红书 · douyin.svg 抖音 · person.svg 小人
 
      两个字段：
        url  完整网址（https:// 开头）。留空或写 "#" 就只显示图标、点了不跳转。
@@ -17,7 +17,7 @@ const SITE = {
      ★★ 点击行为怎么判定（全自动，不用你操心）★★
        填了 url              → 点击跳转        （例：小红书）
        没填 url、但有 tip    → 点击复制 tip 里冒号后面的内容
-                              （例：微信复制微信号、抖音复制抖音号）
+                              （例：抖音复制抖音号）
        两样都没填            → 点击无反应，光标也不变手型
 
      ★★ 抖音：以后想直接跳主页的话 ★★
@@ -31,8 +31,6 @@ const SITE = {
      ★ url 可以是**站内页面**（比如 "friends.html"）→ 就当前窗口跳过去；
        填 http(s) 开头的才算外链，才会新开标签页。 */
   social: [
-    { name: "微信",   url: "", icon: "wechat.svg",
-      tip: "微信号：c08_yh0403" },
     { name: "小红书", url: "https://www.xiaohongshu.com/user/profile/61d2d0b5000000001000b021",
       icon: "xiaohongshu.svg" },
     { name: "抖音",   url: "", icon: "douyin.svg",

@@ -9,7 +9,7 @@ function thumbOf(src) {
   return String(src).replace(/\/([^/]+)$/, "/th/$1");
 }
 
-/* ---------- 复制到剪贴板（给"点一下复制微信号"用） ---------- */
+/* ---------- 复制到剪贴板（给"点一下复制抖音号"用） ---------- */
 function fallbackCopy(t) {
   const ta = document.createElement("textarea");
   ta.value = t;
@@ -27,7 +27,7 @@ function copyText(t) {
   fallbackCopy(t);
   return Promise.resolve();
 }
-/* "微信号：c08_yh0403" → "c08_yh0403"：只取冒号后面那截 */
+/* "抖音号：79674943" → "79674943"：只取冒号后面那截 */
 function copyPart(txt) {
   const parts = String(txt).split(/[：:]/);
   return (parts.length > 1 ? parts.slice(1).join("：") : parts[0]).trim();
@@ -67,7 +67,7 @@ SITE.social.forEach((s) => {
   a.appendChild(tip);
   a.addEventListener("mouseenter", () => a.classList.add("show"));
   a.addEventListener("mouseleave", () => a.classList.remove("show"));
-  /* 没链接、但填了 tip 的图标（比如微信）→ 点一下复制 tip 里的号 */
+  /* 没链接、但填了 tip 的图标（比如抖音）→ 点一下复制 tip 里的号 */
   if (!linked && s.tip) {
     a.style.cursor = "pointer";
     a.addEventListener("click", (e) => {

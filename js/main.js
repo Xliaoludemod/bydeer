@@ -15,7 +15,7 @@ function thumbOf(src) {
   return String(src).replace(/\/([^/]+)$/, "/th/$1");
 }
 
-/* ---------- 复制到剪贴板（给"点一下复制微信号"用） ---------- */
+/* ---------- 复制到剪贴板（给"点一下复制抖音号"用） ---------- */
 function fallbackCopy(t) {
   const ta = document.createElement("textarea");
   ta.value = t;
@@ -34,7 +34,7 @@ function copyText(t) {
   fallbackCopy(t);
   return Promise.resolve();
 }
-/* "微信号：c08_yh0403" → "c08_yh0403"：只取冒号后面那截，前面是说明文字 */
+/* "抖音号：79674943" → "79674943"：只取冒号后面那截，前面是说明文字 */
 function copyPart(txt) {
   const parts = String(txt).split(/[：:]/);
   return (parts.length > 1 ? parts.slice(1).join("：") : parts[0]).trim();
@@ -65,7 +65,7 @@ SITE.social.forEach((s) => {
     a.textContent = s.icon || s.name.slice(0, 1);
   }
   /* 每个图标都挂一个悬停小气泡：
-     有 tip 就用 tip（比如微信号），没有就用名字（比如"小红书"）。
+     有 tip 就用 tip（比如抖音号），没有就用名字（比如"小红书"）。
      不要用 title —— 它跟这个气泡会同时出现，变成两个提示。 */
   const tip = document.createElement("span");
   tip.className = "nav-tip";
@@ -74,7 +74,7 @@ SITE.social.forEach((s) => {
   /* CSS 的 :hover 之外再用 JS 兜一层，免得某些环境悬停不灵 */
   a.addEventListener("mouseenter", () => a.classList.add("show"));
   a.addEventListener("mouseleave", () => a.classList.remove("show"));
-  /* 没链接、但填了 tip 的图标（比如微信）→ 点一下复制 tip 里的号；
+  /* 没链接、但填了 tip 的图标（比如抖音）→ 点一下复制 tip 里的号；
      鼠标也会变成手型，让人知道这里是能点的 */
   if (!linked && s.tip) {
     a.style.cursor = "pointer";

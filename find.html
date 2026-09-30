@@ -36,7 +36,7 @@ body{
 .nav .social a:hover{background:var(--line)}
 .nav .social img{width:15px;height:15px;border-radius:50%}
 
-/* 鼠标停在图标上弹出的小气泡（比如微信号） */
+/* 鼠标停在图标上弹出的小气泡（比如抖音号） */
 .nav-tip{
   position:absolute;top:calc(100% + 9px);right:-2px;left:auto;
   transform:translateY(-4px);
@@ -209,7 +209,7 @@ body{
   </div>
 </div>
 
-<script src="js/data.js?v=20260927a59"></script>
+<script src="js/data.js?v=20260927a60"></script>
 <script>
 (function(){
 "use strict";
@@ -249,7 +249,7 @@ if (S && S.series) {
   });
 }
 
-/* 复制到剪贴板（给"点一下复制微信号"用） */
+/* 复制到剪贴板（给"点一下复制抖音号"用） */
 function fallbackCopy(t) {
   var ta = document.createElement("textarea");
   ta.value = t;
@@ -267,7 +267,7 @@ function copyText(t) {
   fallbackCopy(t);
   return Promise.resolve();
 }
-/* "微信号：c08_yh0403" → "c08_yh0403"：只取冒号后面那截 */
+/* "抖音号：79674943" → "79674943"：只取冒号后面那截 */
 function copyPart(txt) {
   var parts = String(txt).split(/[：:]/);
   return (parts.length > 1 ? parts.slice(1).join("：") : parts[0]).trim();
@@ -294,7 +294,7 @@ if (S && S.social) {
     a.appendChild(tip);
     a.addEventListener("mouseenter", function () { a.classList.add("show"); });
     a.addEventListener("mouseleave", function () { a.classList.remove("show"); });
-    /* 没链接、但填了 tip 的图标（比如微信）→ 点一下复制 tip 里的号 */
+    /* 没链接、但填了 tip 的图标（比如抖音）→ 点一下复制 tip 里的号 */
     if (!linked && it.tip) {
       a.style.cursor = "pointer";
       a.addEventListener("click", function (e) {
