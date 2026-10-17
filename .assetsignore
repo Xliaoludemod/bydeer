@@ -1,0 +1,7 @@
+# Cloudflare 部署时忽略的文件/目录（不影响仓库内容）
+.git
+.git/**
+.wrangler
+.wrangler/**
+node_modules
+node_modules/**
